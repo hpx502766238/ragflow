@@ -1,25 +1,19 @@
-import { Card, CardContent } from '@/components/ui/card';
-import AdvancedSettingForm from './advanced-setting-form';
-import BasicSettingForm from './basic-setting-form';
+import { BackendVariant } from '@/utils/backend-variant';
+import { lazy, Suspense } from 'react';
 
-export default function DatasetSettings() {
+const GoDatasetSetting = lazy(() => import('./go'));
+const PythonDatasetSetting = lazy(() => import('./python'));
+
+// Single configuration route for both backends. Each variant page stays in
+// its own chunk so a deployment only ever downloads the implementation its
+// backend serves.
+export default function DatasetSettingPage() {
   return (
-    <section className="p-8 overflow-y-scroll max-h-[90vh]">
-      <div className="text-3xl font-bold pb-6">Basic settings</div>
-      <Card className="border-0 p-6 bg-colors-background-inverse-weak">
-        <CardContent>
-          <div className="w-2/5">
-            <BasicSettingForm></BasicSettingForm>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="text-3xl font-bold pb-6 pt-8">Advanced settings</div>
-      <Card className="border-0 p-6 bg-colors-background-inverse-weak">
-        <CardContent>
-          <AdvancedSettingForm></AdvancedSettingForm>
-        </CardContent>
-      </Card>
-    </section>
+    <Suspense fallback={null}>
+      <BackendVariant
+        go={<GoDatasetSetting />}
+        python={<PythonDatasetSetting />}
+      />
+    </Suspense>
   );
 }

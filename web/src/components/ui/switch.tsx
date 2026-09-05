@@ -8,22 +8,38 @@ import { cn } from '@/lib/utils';
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
->(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-colors-background-core-standard data-[state=unchecked]:bg-colors-background-inverse-standard',
-      className,
-    )}
-    {...props}
-    ref={ref}
-  >
-    <SwitchPrimitives.Thumb
+>(({ className, ...props }, ref) => {
+  const switchId = React.useId();
+
+  return (
+    <SwitchPrimitives.Root
       className={cn(
-        'pointer-events-none block h-5 w-5 rounded-full bg-colors-text-neutral-strong shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0',
+        'group/switch inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full',
+        'border-2 border-transparent overflow-hidden transition-colors',
+        'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        'data-[state=checked]:bg-accent-primary data-[state=unchecked]:bg-text-sub-title',
+        className,
       )}
-    />
-  </SwitchPrimitives.Root>
-));
+      {...props}
+      // Own the switch id, like `SelectWithSearch` does. Radix's Slot lets
+      // child props win, so this keeps shadcn's `FormControl` from putting the
+      // form item id here — otherwise a `FormLabel` (`<label htmlFor>`) would
+      // forward its clicks to this switch, making the whole label row toggle it.
+      id={switchId}
+      ref={ref}
+    >
+      <SwitchPrimitives.Thumb
+        className="
+        pointer-events-none block w-3 h-3 rounded-full bg-white shadow-lg ring-0 transition-all ease-out
+        group-hover/switch:w-4 group-focus-visible/switch:w-4
+        data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0
+        group-hover/switch:data-[state=checked]:translate-x-2 group-focus-visible/switch:data-[state=checked]:translate-x-2
+      "
+      />
+    </SwitchPrimitives.Root>
+  );
+});
 Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export { Switch };

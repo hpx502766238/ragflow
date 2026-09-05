@@ -1,103 +1,128 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardSineLineContainer } from '@/components/card-singleline-container';
+import { EmptyCardType } from '@/components/empty/constant';
+import { EmptyAppCard } from '@/components/empty/empty';
+import { HomeIcon } from '@/components/svg-icon';
 import { Segmented, SegmentedValue } from '@/components/ui/segmented';
-import { ChevronRight, Cpu, MessageSquare, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Routes } from '@/routes';
+import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
+import { Agents } from './agent-list';
+import { SeeAllAppCard } from './application-card';
+import { ChatList } from './chat-list';
+import { MemoryList } from './memory-list';
+import { SearchList } from './search-list';
 
-const applications = [
-  {
-    id: 1,
-    title: 'Jarvis chatbot',
-    type: 'Chat app',
-    date: '11/24/2024',
-    icon: <MessageSquare className="h-6 w-6" />,
-  },
-  {
-    id: 2,
-    title: 'Search app 01',
-    type: 'Search app',
-    date: '11/24/2024',
-    icon: <Search className="h-6 w-6" />,
-  },
-  {
-    id: 3,
-    title: 'Chatbot 01',
-    type: 'Chat app',
-    date: '11/24/2024',
-    icon: <MessageSquare className="h-6 w-6" />,
-  },
-  {
-    id: 4,
-    title: 'Workflow 01',
-    type: 'Agent',
-    date: '11/24/2024',
-    icon: <Cpu className="h-6 w-6" />,
-  },
-];
+const IconMap = {
+  [Routes.Chats]: 'chats',
+  [Routes.Searches]: 'searches',
+  [Routes.Agents]: 'agents',
+  [Routes.Memories]: 'memory',
+};
+
+const EmptyTypeMap = {
+  [Routes.Chats]: EmptyCardType.Chat,
+  [Routes.Searches]: EmptyCardType.Search,
+  [Routes.Agents]: EmptyCardType.Agent,
+  [Routes.Memories]: EmptyCardType.Memory,
+};
 
 export function Applications() {
-  const [val, setVal] = useState('all');
-  const options = useMemo(() => {
-    return [
-      {
-        label: 'All',
-        value: 'all',
-      },
-      {
-        label: 'Chat',
-        value: 'chat',
-      },
-      {
-        label: 'Search',
-        value: 'search',
-      },
-      {
-        label: 'Agent',
-        value: 'agent',
-      },
-    ];
-  }, []);
+  const [val, setVal] = useState(Routes.Chats);
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [listLength, setListLength] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigate = useCallback(
+    ({ isCreate }: { isCreate?: boolean }) => {
+      if (isCreate) {
+        navigate(val + '?isCreate=true');
+      } else {
+        navigate(val);
+      }
+    },
+    [navigate, val],
+  );
+
+  const options = useMemo(
+    () => [
+      { value: Routes.Chats, label: t('header.chat') },
+      { value: Routes.Searches, label: t('header.search') },
+      { value: Routes.Agents, label: t('header.flow') },
+      { value: Routes.Memories, label: t('header.memories') },
+    ],
+    [t],
+  );
 
   const handleChange = (path: SegmentedValue) => {
-    setVal(path as string);
+    setVal(path as Routes);
+    setListLength(0);
+    setLoading(true);
   };
 
   return (
     <section className="mt-12">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold ">Applications</h2>
+      <header className="flex justify-between items-center mb-2.5">
+        <h2 className="text-2xl font-semibold">
+          <HomeIcon
+            imgClass="me-2.5"
+            name={`${IconMap[val as keyof typeof IconMap]}`}
+            width={24}
+          />
+          {options.find((x) => x.value === val)?.label}
+        </h2>
+
         <Segmented
+          buttonSize="sm"
           options={options}
           value={val}
           onChange={handleChange}
-          className="bg-colors-background-inverse-standard text-colors-text-neutral-standard"
-        ></Segmented>
-      </div>
-      <div className="grid grid-cols-4 gap-6">
-        {[...Array(12)].map((_, i) => {
-          const app = applications[i % 4];
-          return (
-            <Card
-              key={i}
-              className="bg-colors-background-inverse-weak border-colors-outline-neutral-standard"
-            >
-              <CardContent className="p-4 flex items-center gap-6">
-                <div className="w-[70px] h-[70px] rounded-xl flex items-center justify-center bg-gradient-to-br from-[#45A7FA] via-[#AE63E3] to-[#4433FF]">
-                  {app.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{app.title}</h3>
-                  <p className="text-sm opacity-80">{app.type}</p>
-                  <p className="text-sm opacity-80">{app.date}</p>
-                </div>
-                <Button variant="icon" size="icon">
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+          // className="bg-bg-card border border-border-button rounded-lg"
+          // activeClassName="bg-text-primary border-none rounded-lg"
+        />
+      </header>
+
+      {/* <div className="flex flex-wrap gap-4"> */}
+      <CardSineLineContainer>
+        {val === Routes.Agents && (
+          <Agents
+            setListLength={(length: number) => setListLength(length)}
+            setLoading={(loading: boolean) => setLoading(loading)}
+          />
+        )}
+        {val === Routes.Chats && (
+          <ChatList
+            setListLength={(length: number) => setListLength(length)}
+            setLoading={(loading: boolean) => setLoading(loading)}
+          />
+        )}
+        {val === Routes.Searches && (
+          <SearchList
+            setListLength={(length: number) => setListLength(length)}
+            setLoading={(loading: boolean) => setLoading(loading)}
+          />
+        )}
+        {val === Routes.Memories && (
+          <MemoryList
+            setListLength={(length: number) => setListLength(length)}
+            setLoading={(loading: boolean) => setLoading(loading)}
+          />
+        )}
+        {listLength > 0 && (
+          <SeeAllAppCard click={() => handleNavigate({ isCreate: false })} />
+        )}
+      </CardSineLineContainer>
+
+      {listLength <= 0 && !loading && (
+        <div className="w-[210px]">
+          <EmptyAppCard
+            type={EmptyTypeMap[val as keyof typeof EmptyTypeMap]}
+            onClick={() => handleNavigate({ isCreate: true })}
+          />
+        </div>
+      )}
+      {/* </div> */}
     </section>
   );
 }

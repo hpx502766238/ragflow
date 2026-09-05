@@ -1,3 +1,19 @@
+/*
+ *  Copyright 2026 The InfiniFlow Authors. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 import {
   Dialog,
   DialogContent,
@@ -5,10 +21,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { LoadingButton } from '@/components/ui/loading-button';
+import { TagRenameId } from '@/constants/knowledge';
 import { IModalProps } from '@/interfaces/common';
-import { TagRenameId } from '@/pages/add-knowledge/constant';
+import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ButtonLoading } from '../ui/button';
 import { RenameForm } from './rename-form';
 
 export function RenameDialog({
@@ -16,24 +33,36 @@ export function RenameDialog({
   initialName,
   onOk,
   loading,
-}: IModalProps<any> & { initialName: string }) {
+  title,
+  forbidSlash,
+}: IModalProps<any> & {
+  initialName?: string;
+  title?: ReactNode;
+  forbidSlash?: boolean;
+}) {
   const { t } = useTranslation();
 
   return (
     <Dialog open onOpenChange={hideModal}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" data-testid="rename-modal">
         <DialogHeader>
-          <DialogTitle>{t('common.rename')}</DialogTitle>
+          <DialogTitle>{title || t('common.rename')}</DialogTitle>
         </DialogHeader>
         <RenameForm
           initialName={initialName}
           hideModal={hideModal}
           onOk={onOk}
+          forbidSlash={forbidSlash}
         ></RenameForm>
         <DialogFooter>
-          <LoadingButton type="submit" form={TagRenameId} loading={loading}>
+          <ButtonLoading
+            data-testid="rename-save"
+            type="submit"
+            form={TagRenameId}
+            loading={loading}
+          >
             {t('common.save')}
-          </LoadingButton>
+          </ButtonLoading>
         </DialogFooter>
       </DialogContent>
     </Dialog>

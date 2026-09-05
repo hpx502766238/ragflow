@@ -1,6 +1,6 @@
-import { RAGFlowNodeType } from '@/interfaces/database/flow';
-import { FormInstance } from 'antd';
-import { UseFormReturn } from 'react-hook-form';
+import { FormInstance } from '@/interfaces/antd-compat';
+import { RAGFlowNodeType } from '@/interfaces/database/agent';
+import { FieldErrors } from 'react-hook-form';
 
 export interface IOperatorForm {
   onValuesChange?(changedValues: any, values: any): void;
@@ -10,9 +10,13 @@ export interface IOperatorForm {
 }
 
 export interface INextOperatorForm {
-  form: UseFormReturn;
   node?: RAGFlowNodeType;
   nodeId?: string;
+  onValuesChange?(values: any): void;
+  hideOutputs?: boolean;
+  // Validation errors produced for this operator by an outer form's schema
+  // (parser_config.<operatorId>), mirrored onto the fields of this form.
+  externalErrors?: FieldErrors;
 }
 
 export interface IGenerateParameter {
@@ -35,3 +39,19 @@ export interface BeginQuery {
   name: string;
   options: (number | string | boolean)[];
 }
+
+export type IInputs = {
+  avatar: string;
+  title: string;
+  inputs: Record<string, BeginQuery>;
+  prologue: string;
+  mode: string;
+};
+
+export type IOutputs = Record<
+  string,
+  {
+    type?: string;
+    value?: string;
+  }
+>;

@@ -1,73 +1,130 @@
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import {
+  LucideBookText,
+  LucideFolderOpen,
+  LucideLogs,
+  LucideSettings,
+  LucideTextSearch,
+} from 'lucide-react';
+
+import { RAGFlowAvatar } from '@/components/ragflow-avatar';
 import { Button } from '@/components/ui/button';
 import { useSecondPathName } from '@/hooks/route-hook';
-import { cn } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
 import { Routes } from '@/routes';
-import { Banknote, LayoutGrid, Trash2, User } from 'lucide-react';
-import { useHandleMenuClick } from './hooks';
+import { formatPureDate } from '@/utils/date';
 
-const items = [
-  { icon: User, label: 'Dataset', key: Routes.DatasetBase },
-  {
-    icon: LayoutGrid,
-    label: 'Retrieval testing',
-    key: Routes.DatasetTesting,
-  },
-  { icon: Banknote, label: 'Settings', key: Routes.DatasetSetting },
-];
+import { IDataset } from '@/interfaces/database/dataset';
+import { useParams } from 'react-router';
 
-const dataset = {
-  id: 1,
-  title: 'Legal knowledge base',
-  files: '1,242 files',
-  size: '152 MB',
-  created: '12.02.2024',
-  image: 'https://github.com/shadcn.png',
+type PropType = {
+  refreshCount?: number;
+  dataset: IDataset;
 };
 
-export function SideBar() {
+export function SideBar({ dataset: data }: PropType) {
   const pathName = useSecondPathName();
-  const { handleMenuClick } = useHandleMenuClick();
+  const { id } = useParams();
+  const { t } = useTranslation();
+
+  const items = useMemo(() => {
+    const list = [
+      {
+        icon: <LucideFolderOpen className="size-[1em]" />,
+        label: t(`knowledgeDetails.subbarFiles`),
+        key: Routes.Files,
+      },
+      {
+        icon: <LucideTextSearch className="size-[1em]" />,
+        label: t(`knowledgeDetails.testing`),
+        key: Routes.DatasetTesting,
+      },
+      {
+        icon: <LucideLogs className="size-[1em]" />,
+        label: t(`knowledgeDetails.overview`),
+        key: Routes.DataSetOverview,
+      },
+      {
+        icon: <LucideSettings className="size-[1em]" />,
+        label: t(`knowledgeDetails.configuration`),
+        key: Routes.DataSetSetting,
+      },
+      {
+        icon: <LucideBookText className="size-[1em]" />,
+        label: 'Artifacts',
+        key: Routes.Compilation,
+      },
+    ];
+
+    return list;
+  }, [t]);
 
   return (
-    <aside className="w-[303px] relative border-r ">
-      <div className="p-6 space-y-2 border-b">
-        <div
-          className="w-[70px] h-[70px] rounded-xl bg-cover"
-          style={{ backgroundImage: `url(${dataset.image})` }}
+    <aside className="flex flex-col w-64 relative">
+      <header
+        className="px-5 pb-4 grid grid-cols-[auto_1fr] grid-rows-[auto_auto] gap-x-3"
+        style={{
+          gridTemplateAreas: '"avatar title" "avatar stats"',
+        }}
+      >
+        <RAGFlowAvatar
+          avatar={data.avatar}
+          name={data.name}
+          className="size-16"
+          style={{ gridArea: 'avatar' }}
         />
 
-        <h3 className="text-lg font-semibold mb-2">{dataset.title}</h3>
-        <div className="text-sm opacity-80">
-          {dataset.files} | {dataset.size}
+        <h3
+          className="text-lg font-semibold line-clamp-1 text-text-primary text-ellipsis overflow-hidden"
+          style={{ gridArea: 'title' }}
+        >
+          {data.name}
+        </h3>
+
+        <div
+          className="self-end text-text-secondary text-xs overflow-hidden"
+          style={{ gridArea: 'stats' }}
+        >
+          <div className="flex justify-between">
+            <span>
+              {data.document_count} {t('knowledgeDetails.files')}
+            </span>
+            <span>{data.size ? formatBytes(data.size) : ''}</span>
+          </div>
+
+          <div className="mt-0.5">
+            {t('knowledgeDetails.created')} {formatPureDate(data.create_time)}
+          </div>
         </div>
-        <div className="text-sm opacity-80">Created {dataset.created}</div>
-      </div>
-      <div className="mt-4">
-        {items.map((item, itemIdx) => {
-          const active = '/' + pathName === item.key;
-          return (
-            <Button
-              key={itemIdx}
-              variant={active ? 'secondary' : 'ghost'}
-              className={cn('w-full justify-start gap-2.5 p-6 relative')}
-              onClick={handleMenuClick(item.key)}
-            >
-              <item.icon className="w-6 h-6" />
-              <span>{item.label}</span>
-              {active && (
-                <div className="absolute right-0 w-[5px] h-[66px] bg-primary rounded-l-xl shadow-[0_0_5.94px_#7561ff,0_0_11.88px_#7561ff,0_0_41.58px_#7561ff,0_0_83.16px_#7561ff,0_0_142.56px_#7561ff,0_0_249.48px_#7561ff]" />
-              )}
-            </Button>
-          );
-        })}
-      </div>
-      <Button
-        variant="outline"
-        className="absolute bottom-6 left-6 right-6 text-colors-text-functional-danger border-colors-text-functional-danger"
-      >
-        <Trash2 />
-        Delete dataset
-      </Button>
+      </header>
+
+      <nav className="px-5 pt-1 pb-5 overflow-y-auto">
+        <ul className="space-y-5">
+          {items.map((item) => {
+            const active = '/' + pathName === item.key;
+
+            return (
+              <li key={item.key}>
+                <Button
+                  asLink
+                  block
+                  variant="ghost"
+                  className={cn(
+                    'justify-start gap-2.5 px-3 relative h-10 text-base',
+                    active && 'bg-bg-card text-text-primary',
+                  )}
+                  to={`${Routes.DatasetBase}${item.key}/${id}`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </aside>
   );
 }

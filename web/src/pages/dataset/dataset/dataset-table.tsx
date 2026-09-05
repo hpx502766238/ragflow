@@ -13,8 +13,10 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
-import { ChunkMethodDialog } from '@/components/chunk-method-dialog';
-import { Button } from '@/components/ui/button';
+import { EmptyType } from '@/components/empty/constant';
+import Empty from '@/components/empty/empty';
+import { RenameDialog } from '@/components/rename-dialog';
+import { RAGFlowPagination } from '@/components/ui/ragflow-pagination';
 import {
   Table,
   TableBody,
@@ -23,31 +25,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useFetchNextDocumentList } from '@/hooks/document-hooks';
-import { useSetSelectedRecord } from '@/hooks/logic-hooks';
-import { IDocumentInfo } from '@/interfaces/database/document';
-import { getExtension } from '@/utils/document-util';
+import { UseRowSelectionType } from '@/hooks/logic-hooks/use-row-selection';
+import { useFetchDocumentList } from '@/hooks/use-document-request';
+import { t } from 'i18next';
+import { pick } from 'lodash';
 import { useMemo } from 'react';
-import { useChangeDocumentParser } from './hooks';
+import { ShowManageMetadataModalProps } from '../components/metedata/interface';
+import ProcessLogModal from '../process-log-modal';
+import { ChangeParserDialog } from './change-parser-dialog';
+import { useShowLog } from './hooks';
+import { useChangeDocumentParser } from './use-change-document-parser';
 import { useDatasetTableColumns } from './use-dataset-table-columns';
+import { useRenameDocument } from './use-rename-document';
 
-export function DatasetTable() {
-  const {
-    // searchString,
-    documents,
-    pagination,
-    // handleInputChange,
-    setPagination,
-  } = useFetchNextDocumentList();
+export type DatasetTableProps = Pick<
+  ReturnType<typeof useFetchDocumentList>,
+  'documents' | 'setPagination' | 'pagination' | 'loading'
+> &
+  Pick<UseRowSelectionType, 'rowSelection' | 'setRowSelection'> & {
+    showManageMetadataModal: (config: ShowManageMetadataModalProps) => void;
+    bulkOperateBarVisible?: boolean;
+  };
+
+export function DatasetTable({
+  documents,
+  pagination,
+  setPagination,
+  rowSelection,
+  setRowSelection,
+  showManageMetadataModal,
+  bulkOperateBarVisible = false,
+}: DatasetTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const { currentRecord, setRecord } = useSetSelectedRecord<IDocumentInfo>();
 
   const {
     changeParserLoading,
@@ -55,11 +69,26 @@ export function DatasetTable() {
     changeParserVisible,
     hideChangeParserModal,
     showChangeParserModal,
-  } = useChangeDocumentParser(currentRecord.id);
+    changeParserRecord,
+  } = useChangeDocumentParser();
+
+  const {
+    renameLoading,
+    onRenameOk,
+    renameVisible,
+    hideRenameModal,
+    showRenameModal,
+    initialName,
+  } = useRenameDocument();
+
+  const { showLog, logInfo, logVisible, hideLog } = useShowLog(documents);
 
   const columns = useDatasetTableColumns({
     showChangeParserModal,
-    setCurrentRecord: setRecord,
+    showRenameModal,
+    showManageMetadataModal,
+    showLog,
+    setRowSelection,
   });
 
   const currentPagination = useMemo(() => {
@@ -80,20 +109,7 @@ export function DatasetTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onPaginationChange: (updaterOrValue: any) => {
-      if (typeof updaterOrValue === 'function') {
-        const nextPagination = updaterOrValue(currentPagination);
-        setPagination({
-          page: nextPagination.pageIndex + 1,
-          pageSize: nextPagination.pageSize,
-        });
-      } else {
-        setPagination({
-          page: updaterOrValue.pageIndex,
-          pageSize: updaterOrValue.pageSize,
-        });
-      }
-    },
+    getRowId: (row) => row.id, // Use document ID instead of row index
     manualPagination: true, //we're doing manual "server-side" pagination
     state: {
       sorting,
@@ -107,94 +123,98 @@ export function DatasetTable() {
 
   return (
     <div className="w-full">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
+      <Table
+        rootClassName={
+          bulkOperateBarVisible
+            ? 'max-h-[calc(100vh-320px)]'
+            : 'max-h-[calc(100vh-280px)]'
+        }
+      >
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody className="relative">
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-testid="document-row"
+                data-doc-name={row.original.name}
+                data-state={row.getIsSelected() && 'selected'}
+                className="group"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={cell.column.columnDef.meta?.cellClassName}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cell.column.columnDef.meta?.cellClassName}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {pagination?.total} row(s) selected.
-        </div>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                <Empty type={EmptyType.Data} />
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex items-center justify-end  py-4 absolute bottom-3 right-8">
         <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          <RAGFlowPagination
+            {...pick(pagination, 'current', 'pageSize')}
+            total={pagination.total}
+            onChange={(page, pageSize) => {
+              setPagination({ page, pageSize });
+            }}
+          ></RAGFlowPagination>
         </div>
       </div>
       {changeParserVisible && (
-        <ChunkMethodDialog
-          documentId={currentRecord.id}
-          parserId={currentRecord.parser_id}
-          parserConfig={currentRecord.parser_config}
-          documentExtension={getExtension(currentRecord.name)}
-          onOk={onChangeParserOk}
+        <ChangeParserDialog
+          record={changeParserRecord}
           visible={changeParserVisible}
+          onOk={onChangeParserOk}
           hideModal={hideChangeParserModal}
           loading={changeParserLoading}
-        ></ChunkMethodDialog>
+        />
+      )}
+
+      {renameVisible && (
+        <RenameDialog
+          visible={renameVisible}
+          onOk={onRenameOk}
+          loading={renameLoading}
+          hideModal={hideRenameModal}
+          initialName={initialName}
+        ></RenameDialog>
+      )}
+
+      {logVisible && (
+        <ProcessLogModal
+          title={t('knowledgeDetails.fileLogs')}
+          visible={logVisible}
+          onCancel={() => hideLog()}
+          logInfo={logInfo}
+        />
       )}
     </div>
   );

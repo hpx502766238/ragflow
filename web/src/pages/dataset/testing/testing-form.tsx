@@ -1,160 +1,158 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
-import { Button } from '@/components/ui/button';
+import { CrossLanguageFormField } from '@/components/cross-language-form-field';
+import { FormContainer } from '@/components/form-container';
+import {
+  RerankCandidatesCountFormField,
+  rerankCandidatesCountSchema,
+} from '@/components/rerank-candidates-count-item';
+import {
+  MetadataFilter,
+  MetadataFilterSchema,
+} from '@/components/metadata-filter';
+import { RerankFormFields } from '@/components/rerank';
+import {
+  SimilaritySliderFormField,
+  initialSimilarityThresholdValue,
+  initialVectorSimilarityWeightValue,
+  similarityThresholdSchema,
+  vectorSimilarityWeightSchema,
+} from '@/components/similarity-slider';
+import { TopSelectFormItem } from '@/components/top-select';
+import { ButtonLoading } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { RAGFlowSelect } from '@/components/ui/select';
-import { FormSlider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 
-const options = [
-  { label: 'xx', value: 'xx' },
-  { label: 'ii', value: 'ii' },
-];
+import { useTestRetrieval } from '@/hooks/use-knowledge-request';
+import { ITestRetrievalRequestBody } from '@/interfaces/request/knowledge';
+import { trim } from 'lodash';
+import { Send } from 'lucide-react';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router';
+import { useOwnerTenantId } from '../contexts/knowledge-base-context';
 
-const groupOptions = [
-  { label: 'scsdv', options },
-  { label: 'thtyu', options: [{ label: 'jj', value: 'jj' }] },
-];
+type TestingFormProps = Pick<
+  ReturnType<typeof useTestRetrieval>,
+  'loading' | 'refetch' | 'setValues'
+>;
 
-const formSchema = z.object({
-  username: z.number().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-  a: z.number().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-  b: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-  c: z.number().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-  d: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-});
+export default function TestingForm({
+  loading,
+  refetch,
+  setValues,
+}: TestingFormProps) {
+  const { t } = useTranslation();
+  const { id } = useParams();
+  const ownerTenantId = useOwnerTenantId();
+  const knowledgeBaseId = id;
 
-export default function TestingForm() {
+  const formSchema = z
+    .object({
+      question: z.string().min(1, {
+        message: t('knowledgeDetails.testTextPlaceholder'),
+      }),
+      ...similarityThresholdSchema,
+      ...vectorSimilarityWeightSchema,
+      dataset_ids: z.array(z.string()).optional(),
+      ...MetadataFilterSchema,
+      size: z.number().int().min(1).max(100),
+      ...rerankCandidatesCountSchema,
+    })
+    .refine((values) => values.rerank_candidates_count >= values.size, {
+      message: t('chat.rerankCandidatesCountValidation'),
+      path: ['rerank_candidates_count'],
+    });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: 0,
+      ...initialSimilarityThresholdValue,
+      ...initialVectorSimilarityWeightValue,
+      dataset_ids: [knowledgeBaseId],
+      size: 10,
+      rerank_candidates_count: 64,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  const question = form.watch('question');
+
+  const values = useWatch({ control: form.control });
+
+  useEffect(() => {
+    setValues(values as ITestRetrievalRequestBody);
+  }, [setValues, values]);
+
+  function onSubmit() {
+    refetch();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <FormSlider {...field}></FormSlider>
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="a"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <FormSlider {...field}></FormSlider>
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="b"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <RAGFlowSelect
-                value={field.value}
-                onChange={field.onChange}
-                FormControlComponent={FormControl}
-                options={groupOptions}
-              ></RAGFlowSelect>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="c"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <FormSlider {...field}></FormSlider>
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="d"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Textarea
-                  {...field}
-                  className="bg-colors-background-inverse-weak"
-                ></Textarea>
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button
-          variant={'tertiary'}
-          size={'sm'}
-          type="submit"
-          className="w-full"
-        >
-          Test
-        </Button>
+      <form
+        className="size-full flex flex-col"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="px-5 h-0 flex-1">
+          <FormContainer className="p-5 h-full overflow-auto">
+            <SimilaritySliderFormField
+              isTooltipShown={true}
+            ></SimilaritySliderFormField>
+            <RerankFormFields ownerTenantId={ownerTenantId}></RerankFormFields>
+            <CrossLanguageFormField
+              name={'cross_languages'}
+            ></CrossLanguageFormField>
+            <MetadataFilter prefix=""></MetadataFilter>
+            <RerankCandidatesCountFormField></RerankCandidatesCountFormField>
+            <TopSelectFormItem></TopSelectFormItem>
+          </FormContainer>
+        </div>
+
+        <footer className="flex-0 p-5">
+          <FormField
+            control={form.control}
+            name="question"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        form.handleSubmit(onSubmit)();
+                      }
+                    }}
+                  ></Textarea>
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="mt-2.5 text-end">
+            <ButtonLoading
+              type="submit"
+              disabled={!trim(question)}
+              loading={loading}
+            >
+              {/* {!loading && <CirclePlay />} */}
+              {t('knowledgeDetails.testingLabel')}
+              <Send />
+            </ButtonLoading>
+          </div>
+        </footer>
       </form>
     </Form>
   );

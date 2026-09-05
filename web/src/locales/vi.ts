@@ -18,6 +18,8 @@ export default {
       portugueseBr: 'Tiếng Bồ Đào Nha (Brazil)',
       chinese: 'Tiếng Trung giản thể',
       traditionalChinese: 'Tiếng Trung phồn thể',
+      bulgarian: 'Tiếng Bulgaria',
+      arabic: 'Tiếng Ả Rập',
       language: 'Ngôn ngữ',
       languageMessage: 'Vui lòng chọn ngôn ngữ của bạn!',
       languagePlaceholder: 'chọn ngôn ngữ của bạn',
@@ -38,8 +40,10 @@ export default {
       spanish: 'Tiếng Tây Ban Nha',
       japanese: 'Tiếng Nhật',
       embedIntoSite: 'Nhúng vào trang web',
+      openInNewTab: 'Mở trong tab mới',
       nextPage: 'Tới',
       previousPage: 'Lùi',
+      owner: 'Chủ sở hữu',
     },
     login: {
       login: 'Đăng nhập',
@@ -106,6 +110,8 @@ export default {
       disabled: 'Tắt',
       action: 'Hành động',
       parsingStatus: 'Trạng thái phân tích cú pháp',
+      parsingStatusTip:
+        'Thời gian xử lý tài liệu thay đổi tùy theo nhiều yếu tố. Bật các tính năng như Knowledge Graph, RAPTOR, Trích xuất Câu hỏi Tự động hoặc Trích xuất Từ khóa Tự động sẽ làm tăng đáng kể thời gian xử lý. Nếu thanh tiến trình bị dừng, vui lòng tham khảo hai câu hỏi thường gặp sau: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
       processBeginAt: 'Bắt đầu xử lý lúc',
       processDuration: 'Thời gian xử lý',
       progressMsg: 'Thông báo tiến trình',
@@ -113,7 +119,7 @@ export default {
         'Thực hiện kiểm tra truy hồi để kiểm tra xem RAGFlow có thể phục hồi nội dung mong muốn cho LLM không.Vui lòng lưu ý rằng các thay đổi được thực hiện ở đây sẽ không được lưu tự động. Nếu bạn điều chỉnh các cài đặt mặc định ở đây, chẳng hạn như trọng số tương tự của từ khóa, hãy đảm bảo rằng bạn cập nhật các cài đặt liên quan theo cách đồng bộ trong cài đặt trợ lý trò chuyện hoặc cài đặt toán tử thu hồi.',
       similarityThreshold: 'Ngưỡng tương đồng',
       similarityThresholdTip:
-        'RAGFlow sử dụng kết hợp giữa độ tương đồng từ khóa được trọng số và độ tương đồng vectơ cosin được trọng số hoặc kết hợp giữa độ tương đồng từ khóa được trọng số và điểm xếp hạng được tính lại trong quá trình truy hồi. Tham số này đặt ngưỡng cho sự tương đồng giữa truy vấn của người dùng và các khối. Bất kỳ khối nào có điểm tương đồng dưới ngưỡng này sẽ bị loại khỏi kết quả.',
+        'RAGFlow sử dụng kết hợp giữa độ tương đồng từ khóa được trọng số và độ tương đồng vectơ cosin được trọng số hoặc kết hợp giữa độ tương đồng từ khóa được trọng số và điểm xếp hạng được tính lại trong quá trình truy hồi. Tham số này đặt ngưỡng cho sự tương đồng giữa truy vấn của người dùng và các khối. Bất kỳ khối nào có điểm tương đồng dưới ngưỡng này sẽ bị loại khỏi kết quả. Theo mặc định, ngưỡng được đặt thành 20. Điều đó có nghĩa là chỉ những đoạn có điểm tương đồng hỗn hợp từ 20 trở lên mới được truy xuất.',
       vectorSimilarityWeight: 'Trọng số tương đồng từ khóa',
       vectorSimilarityWeightTip:
         'Cài đặt trọng số của độ tương đồng từ khóa trong điểm tương đồng kết hợp, được sử dụng với độ tương đồng vectơ cosin hoặc với điểm xếp hạng được tính lại. Tổng của hai trọng số phải bằng 1.0.',
@@ -133,6 +139,7 @@ export default {
       runningStatus2: 'CANCEL',
       runningStatus3: 'SUCCESS',
       runningStatus4: 'FAIL',
+      runningStatusQueued: 'Đang chờ',
       pageRanges: 'Phạm vi trang',
       pageRangesTip:
         'Phạm vi trang: Xác định các phạm vi trang cần phân tích cú pháp. Các trang không nằm trong các phạm vi này sẽ bị bỏ qua.',
@@ -142,7 +149,7 @@ export default {
       toMessage: 'Thiếu số trang kết thúc (được loại trừ)',
       layoutRecognize: 'Nhận dạng bố cục',
       layoutRecognizeTip:
-        'Sử dụng các mô hình trực quan để phân tích bố cục nhằm xác định tốt hơn cấu trúc tài liệu, tìm vị trí của tiêu đề, khối văn bản, hình ảnh và bảng. Nếu không có tính năng này, chỉ có thể lấy được văn bản thuần của PDF.',
+        'Sử dụng các mô hình trực quan để phân tích bố cục nhằm xác định tốt hơn cấu trúc tài liệu, tìm vị trí của tiêu đề, khối văn bản, hình ảnh và bảng. Nếu không có tính năng này, chỉ có thể lấy được văn bản thuần của PDF. Để biết thêm thông tin, hãy xem https://ragflow.io/docs/dataset_configuration#document-parsing-configuration.',
       taskPageSize: 'Kích thước trang tác vụ',
       taskPageSizeMessage: 'Vui lòng nhập kích thước trang tác vụ của bạn!',
       taskPageSizeTip: `Nếu sử dụng nhận dạng bố cục, tệp PDF sẽ được chia thành các nhóm trang liên tiếp. Phân tích bố cục sẽ được thực hiện song song giữa các nhóm để tăng tốc độ xử lý. 'Kích thước trang tác vụ' xác định kích thước của các nhóm. Kích thước trang càng lớn, khả năng chia tách văn bản liên tục giữa các trang thành các khối khác nhau càng thấp.`,
@@ -153,23 +160,23 @@ export default {
       changeSpecificCategory: 'Thay đổi danh mục cụ thể',
       uploadTitle: 'Nhấp hoặc kéo thả tệp vào khu vực này để tải lên',
       uploadDescription:
-        'RAGFlow hỗ trợ tải lên tệp một lần hoặc theo lô. Đối với RAGFlow triển khai cục bộ: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 1GB, với giới hạn tải lên theo lô là 32 tệp. Không có giới hạn về tổng số tệp trên mỗi tài khoản. Đối với demo.ragflow.io: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 10MB, với mỗi tệp không vượt quá 10MB và tối đa là 128 tệp trên mỗi tài khoản.',
+        'RAGFlow hỗ trợ tải lên tệp một lần hoặc theo lô. Đối với RAGFlow triển khai cục bộ: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 1GB, với giới hạn tải lên theo lô là 32 tệp. Không có giới hạn về tổng số tệp trên mỗi tài khoản. Đối với cloud.ragflow.io: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 10MB, với mỗi tệp không vượt quá 10MB và tối đa là 128 tệp trên mỗi tài khoản.',
       chunk: 'Khối',
       bulk: 'Hàng loạt',
       cancel: 'Hủy bỏ',
       rerankModel: 'Mô hình xếp hạng lại',
       rerankPlaceholder: 'Vui lòng chọn',
-      rerankTip: `Nếu để trống, RAGFlow sẽ sử dụng kết hợp giữa độ tương đồng từ khóa được trọng số và độ tương đồng vectơ cosin được trọng số; nếu chọn mô hình xếp hạng lại, điểm xếp hạng được tính lại sẽ thay thế độ tương đồng vectơ cosin được trọng số.`,
+      rerankTip: `Tùy chọn. Nếu để trống, RAGFlow sẽ sử dụng kết hợp giữa độ tương đồng từ khóa có trọng số và độ tương đồng cosine vector có trọng số; nếu chọn mô hình rerank, điểm rerank có trọng số sẽ thay thế độ tương đồng cosine vector có trọng số. Xin lưu ý rằng việc sử dụng mô hình rerank sẽ làm tăng đáng kể thời gian phản hồi của hệ thống. Nếu bạn muốn sử dụng mô hình rerank, hãy đảm bảo sử dụng SaaS reranker; nếu bạn muốn sử dụng mô hình rerank triển khai cục bộ, hãy khởi động RAGFlow bằng docker-compose-gpu.yml.`,
       topK: 'Top-K',
-      topKTip: `K khối sẽ được đưa vào các mô hình xếp hạng lại.`,
-      delimiter: 'Giới hạn',
+      topKTip: `Sử dụng cùng với Rerank model, thiết lập này xác định số lượng đoạn văn cần gửi đến mô hình reranking được chỉ định.`,
+      delimiter: 'Dấu phân cách cho phân đoạn văn bản',
       html4excel: 'Excel sang HTML',
-      html4excelTip: `Excel sẽ được phân tích cú pháp thành bảng HTML hay không. Nếu là FALSE, mỗi hàng trong Excel sẽ được tạo thành một khối.`,
+      html4excelTip: `Sử dụng cùng với phương pháp cắt khúc General. Khi chưa được bật, tệp bảng tính (XLSX, XLS (Excel 97-2003)) sẽ được phân tích theo dòng thành các cặp khóa-giá trị. Khi bật, tệp bảng tính sẽ được phân tích thành bảng HTML. Nếu bảng gốc vượt quá 12 dòng, hệ thống sẽ tự động chia thành nhiều bảng HTML mỗi 12 dòng. Để biết thêm thông tin, vui lòng xem https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration.`,
       autoKeywords: 'Từ khóa tự động',
-      autoKeywordsTip: `Tự động trích xuất N từ khóa cho mỗi khối để tăng thứ hạng của chúng trong các truy vấn chứa các từ khóa đó. Lưu ý rằng các token bổ sung sẽ được tiêu thụ bởi mô hình trò chuyện được chỉ định trong "Cài đặt mô hình hệ thống". Bạn có thể kiểm tra hoặc cập nhật các từ khóa đã thêm cho một khối từ danh sách khối.`,
+      autoKeywordsTip: `Tự động trích xuất N từ khóa cho mỗi khối để tăng thứ hạng của chúng trong các truy vấn chứa các từ khóa đó. Lưu ý rằng các token bổ sung sẽ được tiêu thụ bởi mô hình trò chuyện được chỉ định trong "Cài đặt mô hình hệ thống". Bạn có thể kiểm tra hoặc cập nhật các từ khóa đã thêm cho một khối từ danh sách khối. Để biết chi tiết, vui lòng xem https://ragflow.io/docs/dev/autokeyword_autoquestion.`,
       autoQuestions: 'Câu hỏi tự động',
-      autoQuestionsTip: `Trích xuất N câu hỏi cho mỗi khối để tăng thứ hạng của chúng cho các truy vấn chứa các câu hỏi đó. Bạn có thể kiểm tra hoặc cập nhật các câu hỏi đã thêm cho một khối từ danh sách khối. Tính năng này sẽ không làm gián đoạn quá trình phân khối nếu xảy ra lỗi, ngoại trừ việc nó có thể thêm kết quả trống vào khối gốc. Lưu ý rằng các token bổ sung sẽ được tiêu thụ bởi LLM được chỉ định trong 'Cài đặt mô hình hệ thống'.`,
-      delimiterTip: `Hỗ trợ nhiều ký tự phân cách, và các ký tự phân cách nhiều ký tự được bao bọc bởi dấu . Ví dụ: nếu được cấu hình như thế này: "##"; thì văn bản sẽ được phân tách bởi dấu xuống dòng, hai dấu # và dấu chấm phẩy, sau đó được lắp ráp theo kích thước của "số token".`,
+      autoQuestionsTip: `Để tăng điểm xếp hạng, hãy trích xuất N câu hỏi cho mỗi đoạn kiến thức bằng mô hình trò chuyện được xác định trong "Cài đặt mô hình hệ thống". Lưu ý rằng việc này sẽ tiêu tốn thêm token. Kết quả có thể được xem và chỉnh sửa trong danh sách các đoạn. Lỗi trích xuất câu hỏi sẽ không chặn quá trình phân đoạn; kết quả trống sẽ được thêm vào đoạn gốc. Để biết chi tiết, vui lòng xem https://ragflow.io/docs/dev/autokeyword_autoquestion.`,
+      delimiterTip: `Hỗ trợ nhiều ký tự phân cách, và các ký tự phân cách nhiều ký tự được bao bọc bởi dấu . Ví dụ: nếu được cấu hình như thế này: "##"; thì văn bản sẽ được phân tách bởi dấu xuống dòng, hai dấu # và dấu chấm phẩy, sau đó được lắp ráp theo kích thước của "số token". Thiết lập các dấu phân cách chỉ sau khi hiểu cơ chế phân đoạn và phân khối văn bản.`,
       redo: `Bạn có muốn xóa các đoạn {{chunkNum}} hiện có không?`,
       knowledgeGraph: 'Đồ thị tri thức',
       setMetaData: 'Đặt dữ liệu Meta',
@@ -180,6 +187,9 @@ export default {
       documentMetaTips: `<p>Dữ liệu meta ở định dạng Json (không thể tìm kiếm). Nó sẽ được thêm vào prompt cho LLM nếu bất kỳ đoạn nào của tài liệu này được đưa vào prompt.</p> <p>Ví dụ:</p> <b>Dữ liệu meta là:</b><br> <code> { "Author": "Alex Dowson", "Date": "2024-11-12" } </code><br><b>Prompt sẽ là:</b><br> <p>Tài liệu: the_name_of_document</p> <p>Tác giả: Alex Dowson</p> <p>Ngày: 2024-11-12</p> <p>Các đoạn liên quan như sau:</p> <ul> <li> Đây là nội dung của đoạn...</li> <li> Đây là nội dung của đoạn...</li> </ul>`,
     },
     knowledgeConfiguration: {
+      imageTableContextWindow: 'Cửa sổ ngữ cảnh hình ảnh & bảng',
+      imageTableContextWindowTip:
+        'Trích xuất N token văn bản phía trên và phía dưới hình ảnh và bảng để cung cấp bối cảnh phong phú hơn.',
       titleDescription:
         'Cập nhật cấu hình cơ sở kiến thức của bạn tại đây, đặc biệt là phương thức phân khối.',
       name: 'Tên cơ sở kiến thức',
@@ -190,14 +200,14 @@ export default {
       languagePlaceholder: 'Vui lòng nhập ngôn ngữ của bạn!',
       permissions: 'Quyền hạn',
       embeddingModel: 'Mô hình nhúng',
-      chunkTokenNumber: 'Số token khối',
+      chunkTokenNumber: 'Kích thước khối được khuyến nghị',
       chunkTokenNumberMessage: 'Số token khối là bắt buộc',
       embeddingModelTip:
-        'Mô hình chuyển đổi các khối thành các nhúng. Nó không thể được thay đổi sau khi cơ sở kiến thức có các khối. Để chuyển sang mô hình nhúng khác, bạn phải xóa tất cả các khối trong cơ sở kiến thức.',
+        'Mô hình nhúng mặc định của cơ sở tri thức. Khi cơ sở tri thức đã có các đoạn (chunk), lúc thay đổi mô hình nhúng, hệ thống sẽ lấy ngẫu nhiên một số chunk để kiểm tra tương thích, mã hóa lại bằng mô hình nhúng mới và tính độ tương đồng cosine giữa vector mới và vector cũ. Chỉ cho phép chuyển khi độ tương đồng trung bình của mẫu ≥ 0.9. Nếu không, bạn phải xóa tất cả các chunk trong cơ sở tri thức trước khi có thể thay đổi.',
       permissionsTip:
         'Nếu được đặt thành "Đội", tất cả các thành viên trong nhóm sẽ có thể quản lý cơ sở kiến thức.',
       chunkTokenNumberTip:
-        'Nó đặt ngưỡng token cho một khối. Một đoạn văn có ít token hơn ngưỡng này sẽ được kết hợp với đoạn văn tiếp theo cho đến khi số lượng token vượt quá ngưỡng, tại thời điểm đó, một khối được tạo.',
+        'Nó đặt ngưỡng token cho một khối. Một đoạn văn có ít token hơn ngưỡng này sẽ được kết hợp với đoạn văn tiếp theo cho đến khi số lượng token vượt quá ngưỡng, tại thời điểm đó, một khối được tạo. Không có khối mới nào được tạo ra trừ khi một dấu phân cách được gặp, ngay cả khi ngưỡng này bị vượt quá.',
       chunkMethod: 'Phương thức khối',
       chunkMethodTip: 'Mẹo ở bên phải.',
       upload: 'Tải lên',
@@ -212,13 +222,19 @@ export default {
       methodTitle: 'Mô tả phương thức phân khối',
       methodExamples: 'Ví dụ',
       methodExamplesDescription:
-        'Các ảnh chụp màn hình sau được cung cấp để minh họa.',
+        'Để giúp bạn hiểu rõ hơn, chúng tôi đã cung cấp ảnh chụp màn hình liên quan để tham khảo.',
       dialogueExamplesTitle: 'Ví dụ hội thoại',
       methodEmpty: 'Mô tả bằng hình ảnh các danh mục cơ sở kiến thức',
+      audio: `<p>Các định dạng tệp được hỗ trợ là <b>WAV, MP3, AAC, FLAC, OGG</b> và các định dạng âm thanh phổ biến khác.</p>
+<p>Phương pháp này phiên âm các tệp âm thanh thành văn bản bằng mô hình chuyển giọng nói thành văn bản.</p>`,
+      email: `<p>Các định dạng tệp được hỗ trợ là <b>EML</b> và <b>MSG</b>.</p>
+<p>Phương pháp này phân tích các tệp email, trích xuất các trường tiêu đề (như Từ, Đến, CC, Chủ đề và Ngày), nội dung thân thư và tệp đính kèm.</p>`,
+      knowledgeCompiler: `<p>Pipeline này phân tích và chia nhỏ tệp thành các chunk, sau đó biên dịch các chunk thành các đơn vị tri thức có cấu trúc (đồ thị tri thức, wiki, RAPTOR, sơ đồ tư duy hoặc điều hướng tập dữ liệu) thông qua thành phần Knowledge Compiler.</p>
+<p>Các đơn vị tri thức đã biên dịch được xuất dưới dạng chunk hợp nhất vào luồng chunk, rất lý tưởng để xây dựng lớp tri thức có thể truy xuất trên các tài liệu đã chia nhỏ.</p>`,
       book: `<p>Các định dạng tệp được hỗ trợ là <b>DOCX</b>, <b>PDF</b>, <b>TXT</b>.</p><p>
       Đối với mỗi sách trong PDF, vui lòng đặt <i>phạm vi trang</i> để loại bỏ thông tin không mong muốn và giảm thời gian phân tích.</p>`,
       laws: `<p>Các định dạng tệp được hỗ trợ là <b>DOCX</b>, <b>PDF</b>, <b>TXT</b>.</p><p>
-      Các tài liệu pháp lý thường tuân theo định dạng viết nghiêm ngặt. Chúng tôi sử dụng tính năng văn bản để xác định điểm phân chia. 
+      Các tài liệu pháp lý thường tuân theo định dạng viết nghiêm ngặt. Chúng tôi sử dụng tính năng văn bản để xác định điểm phân chia.
       </p><p>
       Khối có độ chi tiết nhất quán với 'ARTICLE', đảm bảo tất cả văn bản cấp trên được bao gồm trong khối.
       </p>`,
@@ -229,10 +245,10 @@ export default {
       <p>
       <li>Sử dụng mô hình nhận dạng thị giác để chia các văn bản thành các phân đoạn nhỏ hơn.</li>
       <li>Sau đó, kết hợp các phân đoạn liền kề cho đến khi số lượng token vượt quá ngưỡng được chỉ định bởi 'Số token khối', tại thời điểm đó, một khối được tạo.</li></p>
-      <p>Các định dạng tệp được hỗ trợ là <b>DOCX, XLSX, XLS (Excel97~2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML</b>.</p>`,
+      <p>Các định dạng tệp được hỗ trợ là <b>MD, MDX, DOCX, XLSX, XLS (Excel 97-2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML</b>.</p>`,
       paper: `<p>Chỉ hỗ trợ tệp <b>PDF</b>.</p><p>
       Bài báo sẽ được chia theo các phần, chẳng hạn như <i>tóm tắt, 1.1, 1.2</i>. </p><p>
-      Cách tiếp cận này cho phép LLM tóm tắt bài báo hiệu quả hơn và cung cấp các phản hồi toàn diện, dễ hiểu hơn. 
+      Cách tiếp cận này cho phép LLM tóm tắt bài báo hiệu quả hơn và cung cấp các phản hồi toàn diện, dễ hiểu hơn.
       Tuy nhiên, nó cũng làm tăng ngữ cảnh cho các cuộc hội thoại AI và tăng thêm chi phí tính toán cho LLM. Vì vậy, trong quá trình trò chuyện, hãy cân nhắc giảm giá trị của '<b>topN</b>'.</p>`,
       presentation: `<p>Các định dạng tệp được hỗ trợ là <b>PDF</b>, <b>PPTX</b>.</p><p>
       Mỗi trang trong slide được coi là một khối, với hình thu nhỏ của nó được lưu trữ.</p><p>
@@ -288,48 +304,50 @@ export default {
       Áp dụng khi bạn yêu cầu LLM tóm tắt toàn bộ tài liệu, với điều kiện nó có thể xử lý được lượng ngữ cảnh đó.
       </p>`,
       knowledgeGraph: `<p>Các định dạng tệp được hỗ trợ là <b>DOCX, EXCEL, PPT, IMAGE, PDF, TXT, MD, JSON, EML</b>
-             
+
       <p>Cách tiếp cận này phân đoạn tệp bằng phương pháp 'ngây thơ'/'Tổng hợp'. Nó chia tài liệu thành các phân đoạn và sau đó kết hợp các phân đoạn liền kề cho đến khi số lượng token vượt quá ngưỡng được chỉ định bởi 'Số token khối', tại thời điểm đó, một khối được tạo.</p>
       <p>Các khối sau đó được đưa vào LLM để trích xuất các thực thể và mối quan hệ cho biểu đồ tri thức và sơ đồ tư duy.</p>
       <p>Đảm bảo bạn đã đặt <b>Loại thực thể</b>.</p>`,
       useRaptor: 'Sử dụng RAPTOR để cải thiện truy xuất',
       useRaptorTip:
-        'Recursive Abstractive Processing for Tree-Organized Retrieval, xem https://huggingface.co/papers/2401.18059 để biết thêm thông tin',
+        'Kích hoạt RAPTOR cho các tác vụ hỏi đáp đa bước. Xem chi tiết tại https://ragflow.io/docs/dev/enable_raptor.',
       prompt: 'Nhắc nhở',
-      promptTip: 'Nhắc nhở LLM được sử dụng để tóm tắt.',
+      promptTip:
+        'Sử dụng lời nhắc hệ thống để mô tả nhiệm vụ cho LLM, chỉ định cách nó nên phản hồi và phác thảo các yêu cầu khác nhau. Lời nhắc hệ thống thường được sử dụng kết hợp với các khóa (biến), đóng vai trò là các đầu vào dữ liệu khác nhau cho LLM. Sử dụng dấu gạch chéo `/` hoặc nút (x) để hiển thị các khóa cần sử dụng.',
       promptMessage: 'Nhắc nhở là bắt buộc',
       promptText: `Vui lòng tóm tắt các đoạn văn sau. Cẩn thận với các số, đừng bịa ra. Các đoạn văn như sau:
       {cluster_content}
       Nội dung ở trên là nội dung bạn cần tóm tắt.`,
       maxToken: 'Số token tối đa',
-      maxTokenTip: 'Số lượng token tối đa để tóm tắt.',
+      maxTokenTip: 'Số lượng token tối đa cho mỗi đoạn tóm tắt được tạo ra.',
       maxTokenMessage: 'Số token tối đa là bắt buộc',
       threshold: 'Ngưỡng',
-      thresholdTip: 'Ngưỡng càng cao thì cụm càng ít.',
+      thresholdTip:
+        'Trong RAPTOR, các đoạn văn bản được nhóm lại dựa trên sự tương đồng ngữ nghĩa của chúng. Tham số Ngưỡng thiết lập mức độ tương đồng tối thiểu cần thiết để các đoạn được nhóm lại với nhau. Ngưỡng càng cao thì mỗi nhóm sẽ có ít đoạn hơn, còn ngưỡng càng thấp thì mỗi nhóm sẽ có nhiều đoạn hơn.',
       thresholdMessage: 'Ngưỡng là bắt buộc',
       maxCluster: 'Cụm tối đa',
-      maxClusterTip: 'Số lượng cụm tối đa.',
+      maxClusterTip: 'Số lượng cụm tối đa được tạo ra.',
       maxClusterMessage: 'Cụm tối đa là bắt buộc',
       randomSeed: 'Hạt giống ngẫu nhiên',
       randomSeedMessage: 'Hạt giống ngẫu nhiên là bắt buộc',
       entityTypes: 'Loại thực thể',
       vietnamese: 'Tiếng Việt',
       pageRank: 'Xếp hạng trang',
-      pageRankTip: `Điều này được sử dụng để tăng điểm liên quan. Điểm liên quan với tất cả các khối được truy xuất sẽ cộng với số này, Khi bạn muốn tìm kiếm cơ sở kiến thức đã cho ở vị trí đầu tiên, hãy đặt điểm "Page Rank" cao hơn những điểm khác.`,
-      tag: `<p>Cơ sở kiến thức sử dụng 'Tag' làm phương pháp phân đoạn được cho là sẽ được sử dụng bởi các cơ sở kiến thức khác để thêm thẻ vào các đoạn của chúng, các truy vấn tới đó cũng sẽ có thẻ.</p> 
-<p>Cơ sở kiến thức sử dụng 'Tag' làm phương pháp phân đoạn <b>KHÔNG</b> được dự định tham gia vào quy trình RAG.</p> 
-<p>Các đoạn trong cơ sở kiến thức này là ví dụ về thẻ, thể hiện toàn bộ tập hợp thẻ và mối quan hệ giữa đoạn và thẻ.</p> 
-<p>Phương pháp phân đoạn này hỗ trợ định dạng tệp <b>XLSX</b> và <b>CSV/TXT</b>.</p> 
-<p>Nếu tệp ở định dạng <b>XLSX</b>, nó phải chứa hai cột không có tiêu đề: một cho nội dung và một cho thẻ, với cột nội dung đứng trước cột thẻ. Nhiều trang tính được chấp nhận, miễn là các cột được cấu trúc đúng.</p> 
-<p>Nếu tệp ở định dạng <b>CSV/TXT</b>, nó phải được mã hóa UTF-8 với TAB làm dấu phân cách để phân tách nội dung và thẻ.</p> 
-<p>Trong cột thẻ, có dấu <b>phẩy</b> tiếng Anh giữa các thẻ.</p> 
-<i>Các dòng văn bản không tuân theo các quy tắc trên sẽ bị bỏ qua và mỗi cặp sẽ được coi là một đoạn riêng biệt.</i>`,
+      pageRankTip: `Bạn có thể gán điểm PageRank cao hơn cho các cơ sở kiến thức cụ thể trong quá trình truy xuất. Điểm tương ứng được cộng vào điểm tương đồng lai của các đoạn được truy xuất từ các cơ sở kiến thức này, làm tăng thứ hạng của chúng. Xem https://ragflow.io/docs/dataset_configuration#basic-information để biết thêm chi tiết.`,
+      tag: `<p>Cơ sở kiến thức sử dụng phương pháp phân đoạn 'Tag' hoạt động như một tập hợp thẻ. Các cơ sở kiến thức khác có thể sử dụng nó để gắn thẻ cho các đoạn của riêng chúng và các truy vấn tới các cơ sở kiến thức này cũng sẽ được gắn thẻ bằng tập hợp thẻ này.</p>
+      <p>Một bộ thẻ sẽ không trực tiếp tham gia vào quá trình Tạo sinh tăng cường truy xuất (Retrieval-Augmented Generation, RAG).</p>
+      <p>Mỗi đoạn trong cơ sở kiến thức này là một cặp mô tả-thẻ độc lập.</p>
+      <p>Các định dạng tệp được hỗ trợ bao gồm <b>XLSX</b> và <b>CSV/TXT</b>:</p>
+      <p>Nếu tệp ở định dạng <b>XLSX</b>, tệp đó phải chứa hai cột không có tiêu đề: một cột dành cho mô tả thẻ và cột còn lại dành cho tên thẻ, với cột Mô tả đứng trước cột Thẻ. Có thể chấp nhận nhiều trang tính, miễn là cấu trúc cột được cấu trúc đúng cách.</p>
+      <p>Nếu tệp ở định dạng <b>CSV/TXT</b>, tệp đó phải được mã hóa UTF-8 với TAB làm dấu phân cách để phân tách mô tả và thẻ.</p>
+      <p>Trong cột Thẻ, <b>dấu phẩy</b> được sử dụng để phân tách các thẻ.</p>
+      <i>Các dòng văn bản không tuân theo các quy tắc trên sẽ bị bỏ qua.</i>`,
       tagName: 'Thẻ',
       frequency: 'Tần số',
       searchTags: 'Thẻ tìm kiếm',
       tagTable: 'Bảng',
       tagSet: 'Thư viện',
-      tagSetTip: `<p>Việc chọn các cơ sở kiến thức 'Tag' giúp gắn thẻ cho từng đoạn.</p> <p>Truy vấn đến các đoạn đó cũng sẽ kèm theo thẻ.</p> Quy trình này sẽ cải thiện độ chính xác của việc truy xuất bằng cách thêm nhiều thông tin hơn vào bộ dữ liệu, đặc biệt là khi có một tập hợp lớn các đoạn. <p>Sự khác biệt giữa thẻ và từ khóa:</p> <ul> <li>Thẻ là một tập hợp khép kín được người dùng định nghĩa và thao tác trong khi từ khóa là một tập hợp mở.</li> <li>Bạn cần tải lên các tập hợp thẻ với các mẫu trước khi sử dụng.</li> <li>Từ khóa được tạo bởi LLM, tốn kém và mất thời gian.</li> </ul>`,
+      tagSetTip: `<p>Việc chọn các cơ sở kiến thức 'Tag' giúp gắn thẻ cho từng đoạn.</p> <p>Truy vấn đến các đoạn đó cũng sẽ kèm theo thẻ.</p> Quy trình này sẽ cải thiện độ chính xác của việc truy xuất bằng cách thêm nhiều thông tin hơn vào bộ dữ liệu, đặc biệt là khi có một tập hợp lớn các đoạn. <p>Sự khác biệt giữa thẻ và từ khóa:</p> <ul> <li>Thẻ là một tập hợp khép kín được người dùng định nghĩa và thao tác trong khi từ khóa là một tập hợp mở.</li> <li>Bạn cần tải lên các tập hợp thẻ với các mẫu trước khi sử dụng.</li> <li>Từ khóa được tạo bởi LLM, tốn kém và mất thời gian.</li> </ul><p>Xem https://ragflow.io/docs/dataset_configuration#basic-information để biết thêm chi tiết.</p>`,
       topnTags: 'Thẻ Top-N',
       tags: 'Thẻ',
       addTag: 'Thêm thẻ',
@@ -338,18 +356,33 @@ export default {
       tagCloud: 'Đám mây',
       graphRagMethod: 'Phương pháp',
       graphRagMethodTip: `Light: Câu lệnh trích xuất thực thể và quan hệ này được lấy từ GitHub - HKUDS/LightRAG: "LightRAG: Tạo sinh tăng cường truy xuất đơn giản và nhanh chóng".
-      General: Câu lệnh trích xuất thực thể và quan hệ này được lấy từ GitHub - microsoft/graphrag: Một hệ thống Tạo sinh tăng cường truy xuất (RAG) dựa trên đồ thị theo mô-đun.`,
+      General: Câu lệnh trích xuất thực thể và quan hệ này được lấy từ GitHub - microsoft/graphrag: Một hệ thống Tạo sinh tăng cường truy xuất (RAG) dựa trên đồ thị theo mô-đun.
+      NER: Sử dụng spaCy NER và trích xuất từ khóa dựa trên quy tắc để trích xuất thực thể và quan hệ. Không cần LLM cho việc trích xuất, giúp nhanh chóng và tiết kiệm tài nguyên.`,
       useGraphRagTip:
-        'Sau khi các tệp được chia thành các đoạn nhỏ, tất cả các đoạn này sẽ được sử dụng để tạo biểu đồ tri thức, từ đó hỗ trợ suy luận cho các bài toán phức tạp và nhiều bước.',
+        'Xây dựng một biểu đồ tri thức trên các đoạn tệp của cơ sở tri thức hiện tại để tăng cường khả năng trả lời câu hỏi đa bước liên quan đến logic lồng nhau. Xem https://ragflow.io/docs/dev/construct_knowledge_graph để biết thêm chi tiết.',
       resolution: 'Hợp nhất thực thể',
       resolutionTip:
         'Quy trình phân giải sẽ hợp nhất các thực thể có cùng ý nghĩa lại với nhau, giúp đồ thị trở nên cô đọng và chính xác hơn. Các thực thể sau đây nên được hợp nhất: President Trump, Donald Trump, Donald J. Trump, Donald John Trump.',
       community: 'Xây dựng mối quan hệ cộng đồng',
       communityTip:
         'Các liên kết được nhóm lại thành các cộng đồng phân cấp, với các thực thể và mối quan hệ kết nối từng phân đoạn lên các cấp độ trừu tượng cao hơn. Sau đó, chúng tôi sử dụng một LLM để tạo ra bản tóm tắt cho mỗi cộng đồng, được gọi là báo cáo cộng đồng. Xem thêm: https://www.microsoft.com/en-us/research/blog/graphrag-improving-global-search-via-dynamic-community-selection/',
+      paddleocrOptions: 'Tùy chọn PaddleOCR',
+      paddleocrApiUrl: 'URL API PaddleOCR',
+      paddleocrApiUrlTip: 'URL điểm cuối API của dịch vụ PaddleOCR',
+      paddleocrApiUrlPlaceholder:
+        'Ví dụ: https://paddleocr-server.com/layout-parsing',
+      paddleocrAccessToken: 'Token truy cập AI Studio',
+      paddleocrAccessTokenTip: 'Token truy cập cho API PaddleOCR (tùy chọn)',
+      paddleocrAccessTokenPlaceholder: 'Token AI Studio của bạn (tùy chọn)',
+      paddleocrAlgorithm: 'Thuật toán PaddleOCR',
+      paddleocrAlgorithmTip: 'Thuật toán được sử dụng để xử lý PaddleOCR',
+      paddleocrSelectAlgorithm: 'Chọn thuật toán',
+      paddleocrModelNamePlaceholder: 'Ví dụ: paddleocr-môi-trường-1',
     },
     chunk: {
       chunk: 'Khối',
+      createChunk: 'Tạo khối',
+      editChunk: 'Chỉnh sửa khối',
       bulk: 'Hàng loạt',
       selectAll: 'Chọn tất cả',
       enabledSelected: 'Bật đã chọn',
@@ -371,6 +404,9 @@ export default {
         'Nếu có những câu hỏi được đưa ra, việc nhúng phần đó sẽ dựa trên những câu hỏi đó.',
     },
     chat: {
+      chatSupport: 'Hỗ trợ trò chuyện',
+      replyInstantly: 'Chúng tôi thường phản hồi ngay lập tức',
+      typeYourMessage: 'Nhập tin nhắn của bạn...',
       newConversation: 'Cuộc trò chuyện mới',
       createAssistant: 'Tạo trợ lý',
       assistantSetting: 'Cài đặt trợ lý',
@@ -382,20 +418,21 @@ export default {
       sendPlaceholder: 'Nhắn tin cho Trợ lý...',
       chatConfiguration: 'Cấu hình Chat',
       chatConfigurationDescription:
-        'Tại đây, hãy trang điểm cho một trợ lý chuyên dụng cho các cơ sở kiến thức đặc biệt của bạn! 💕',
+        'Thiết lập trợ lý trò chuyện cho các tập dữ liệu đã chọn (cơ sở tri thức) tại đây. 💕',
       assistantName: 'Tên trợ lý',
       assistantNameMessage: 'Tên trợ lý là bắt buộc',
       namePlaceholder: 'ví dụ: Resume Jarvis',
       assistantAvatar: 'Avatar trợ lý',
       language: 'Ngôn ngữ',
       emptyResponse: 'Phản hồi trống',
-      emptyResponseTip: `Nếu không tìm thấy gì với câu hỏi của người dùng trong cơ sở kiến thức, nó sẽ sử dụng điều này làm câu trả lời. Nếu bạn muốn LLM đưa ra ý kiến ​​riêng của mình khi không tìm thấy gì, hãy để trống.`,
+      emptyResponseTip: `Nếu không tìm thấy gì với câu hỏi của người dùng trong cơ sở kiến thức, nó sẽ sử dụng điều này làm câu trả lời. Nếu bạn muốn LLM đưa ra ý kiến riêng của mình khi không tìm thấy gì, hãy để trống.`,
       setAnOpener: 'Đặt lời mở đầu',
       setAnOpenerInitial: `Xin chào! Tôi là trợ lý của bạn, tôi có thể giúp gì cho bạn?`,
       setAnOpenerTip: 'Bạn muốn chào đón khách hàng của mình như thế nào?',
       knowledgeBases: 'Cơ sở kiến thức',
       knowledgeBasesMessage: 'Vui lòng chọn',
-      knowledgeBasesTip: 'Chọn các cơ sở kiến thức liên kết.',
+      knowledgeBasesTip:
+        'Chọn các cơ sở kiến thức liên kết. Cơ sở tri thức trống sẽ không xuất hiện trong danh sách thả xuống.',
       system: 'Hệ thống',
       systemInitialValue: `Bạn là một trợ lý thông minh. Vui lòng tóm tắt nội dung của cơ sở kiến thức để trả lời câu hỏi. Vui lòng liệt kê dữ liệu trong cơ sở kiến thức và trả lời chi tiết. Khi tất cả nội dung cơ sở kiến thức không liên quan đến câu hỏi, câu trả lời của bạn phải bao gồm câu "Câu trả lời bạn đang tìm kiếm không được tìm thấy trong cơ sở kiến thức!" Câu trả lời cần xem xét lịch sử trò chuyện.
       Đây là cơ sở kiến thức:
@@ -403,14 +440,11 @@ export default {
       Trên đây là cơ sở kiến thức.`,
       systemMessage: 'Vui lòng nhập!',
       systemTip:
-        'Hướng dẫn bạn cần LLM để làm theo khi LLM trả lời câu hỏi, chẳng hạn như thiết kế nhân vật, độ dài câu trả lời và ngôn ngữ trả lời, v.v.',
+        'Hướng dẫn bạn cần LLM để làm theo khi LLM trả lời câu hỏi, chẳng hạn như thiết kế nhân vật, độ dài câu trả lời và ngôn ngữ trả lời, v.v. Nếu mô hình của bạn hỗ trợ suy luận nguyên bản, bạn có thể thêm //no_thinking vào prompt để dừng suy luận.',
       topN: 'Top N',
       topNTip: `Không phải tất cả các khối có điểm tương đồng vượt quá 'ngưỡng tương đồng' sẽ được cung cấp cho LLMs. LLM chỉ có thể xem 'Top N' khối này.`,
       variable: 'Biến',
-      variableTip: `Nếu bạn sử dụng API thoại, các biến có thể giúp bạn trò chuyện với khách hàng của mình bằng các chiến lược khác nhau.
-      Các biến được sử dụng để điền vào phần 'Hệ thống' trong lời nhắc để cung cấp cho LLM một gợi ý.
-      'knowledge' là một biến rất đặc biệt sẽ được điền bằng các khối được truy xuất.
-      Tất cả các biến trong 'Hệ thống' phải được đặt trong dấu ngoặc nhọn.`,
+      variableTip: `Sử dụng cùng với các API quản lý trợ lý trò chuyện của RAGFlow, các biến có thể giúp phát triển các chiến lược lời nhắc hệ thống linh hoạt hơn. Các biến được định nghĩa sẽ được sử dụng bởi 'Lời nhắc hệ thống' như một phần của lời nhắc cho LLM. {knowledge} là một biến đặc biệt được bảo lưu, đại diện cho các phần được truy xuất từ cơ sở tri thức được chỉ định, và tất cả các biến nên được đặt trong ngoặc nhọn {} trong 'Lời nhắc hệ thống'. Xem https://ragflow.io/docs/chat_configuration#system-prompt để biết thêm chi tiết.`,
       add: 'Thêm',
       key: 'Khóa',
       optional: 'Tùy chọn',
@@ -441,8 +475,7 @@ export default {
         'Tương tự như hình phạt hiện diện, điều này làm giảm xu hướng của mô hình lặp lại cùng một từ thường xuyên.',
       maxTokens: 'Token tối đa',
       maxTokensMessage: 'Token tối đa là bắt buộc',
-      maxTokensTip:
-        'Điều này đặt độ dài tối đa của đầu ra của mô hình, được đo bằng số lượng token (từ hoặc phần của từ).',
+      maxTokensTip: `Kích thước ngữ cảnh tối đa của mô hình; giá trị không hợp lệ hoặc sai sẽ gây lỗi. Mặc định là 512.`,
       maxTokensInvalidMessage: 'Vui lòng nhập số Token tối đa hợp lệ.',
       maxTokensMinMessage: 'Token tối đa không thể nhỏ hơn 0.',
       quote: 'Hiển thị Trích dẫn',
@@ -497,17 +530,22 @@ export default {
         'Có nên sử dụng đồ thị tri thức trong cơ sở tri thức được chỉ định trong quá trình thu hồi để trả lời câu hỏi đa bước hay không. Khi được kích hoạt, điều này sẽ liên quan đến các tìm kiếm lặp lại trên các đoạn thực thể, mối quan hệ và báo cáo cộng đồng, làm tăng đáng kể thời gian thu hồi.',
       keyword: 'Phân tích từ khóa',
       keywordTip:
-        'Áp dụng LLM (Mô hình ngôn ngữ lớn) để phân tích câu hỏi của người dùng, trích xuất các từ khóa sẽ được nhấn mạnh trong quá trình tính toán độ liên quan.',
+        'Áp dụng LLM (Mô hình ngôn ngữ lớn) để phân tích câu hỏi của người dùng, trích xuất các từ khóa sẽ được nhấn mạnh trong quá trình tính toán độ liên quan. Hoạt động tốt với các truy vấn dài nhưng sẽ làm tăng thời gian phản hồi.',
       languageTip:
         'Cho phép viết lại câu với ngôn ngữ được chỉ định, hoặc sử dụng câu hỏi mới nhất nếu không chọn ngôn ngữ nào.',
+      showChunkMetadata: 'Hiển thị siêu dữ liệu đoạn',
+      showChunkMetadataTip:
+        'Hiển thị siêu dữ liệu tài liệu (tiêu đề, số trang, ngày tải lên, v.v.) bên cạnh các đoạn văn bản được truy xuất',
+      metadataFields: 'Trường siêu dữ liệu',
+      metadataFieldsTip: 'Chọn các trường siêu dữ liệu hiển thị với mỗi đoạn',
     },
     setting: {
       profile: 'Hồ sơ',
+      avatar: 'Avatar',
       profileDescription: 'Cập nhật ảnh và thông tin cá nhân của bạn tại đây.',
       maxTokens: 'Token tối đa',
       maxTokensMessage: 'Token tối đa là bắt buộc',
-      maxTokensTip:
-        'Điều này đặt độ dài tối đa của đầu ra của mô hình, được đo bằng số lượng token (từ hoặc phần của từ).',
+      maxTokensTip: `Kích thước ngữ cảnh tối đa của mô hình; giá trị không hợp lệ hoặc sai sẽ gây lỗi. Mặc định là 512.`,
       maxTokensInvalidMessage: 'Vui lòng nhập số Token tối đa hợp lệ.',
       maxTokensMinMessage: 'Token tối đa không thể nhỏ hơn 0.',
       password: 'Mật khẩu',
@@ -545,34 +583,41 @@ export default {
       addedModels: 'Các mô hình đã thêm',
       modelsToBeAdded: 'Các mô hình cần thêm',
       addTheModel: 'Thêm mô hình',
-      apiKey: 'API-Key',
+      apiKey: 'API Key',
       apiKeyMessage:
         'Vui lòng nhập khóa API (đối với mô hình được triển khai cục bộ, bỏ qua điều này).',
       apiKeyTip:
         'Khóa API có thể được lấy bằng cách đăng ký nhà cung cấp LLM tương ứng.',
       showMoreModels: 'Hiển thị thêm mô hình',
-      baseUrl: 'Base-Url',
+      hideModels: 'Ẩn mô hình',
+      baseUrl: 'Base URL',
       baseUrlTip:
         'Nếu khóa API của bạn từ OpenAI, chỉ cần bỏ qua nó. Bất kỳ nhà cung cấp trung gian nào khác sẽ cung cấp URL cơ sở này với khóa API.',
+      siliconBaseUrlTip:
+        'For Chinese users, no need to fill in or use https://api.siliconflow.cn/v1. For international users, use https://api.siliconflow.com/v1',
+      minimaxBaseUrlTip:
+        'Chỉ người dùng quốc tế: dùng https://api.minimax.io/v1.',
+      minimaxBaseUrlPlaceholder:
+        '(Chỉ dành cho người dùng quốc tế, điền https://api.minimax.io/v1)',
       modify: 'Sửa đổi',
-      systemModelSettings: 'Cài đặt mô hình hệ thống',
+      systemModelSettings: 'Đặt mô hình mặc định',
       chatModel: 'Mô hình trò chuyện',
       chatModelTip:
         'LLM trò chuyện mặc định mà tất cả các cơ sở kiến thức mới tạo sẽ sử dụng.',
       embeddingModel: 'Mô hình nhúng',
       embeddingModelTip:
-        'Mô hình nhúng mặc định mà tất cả các cơ sở kiến thức mới tạo sẽ sử dụng.',
+        'Mô hình nhúng mặc định cho từng cơ sở tri thức mới được tạo. Nếu bạn không tìm thấy mô hình nhúng từ danh sách thả xuống, hãy kiểm tra xem bạn có đang sử dụng phiên bản RAGFlow slim (không bao gồm các mô hình nhúng) hay không, hoặc kiểm tra https://ragflow.io/docs/dev/supported_models để xem nhà cung cấp mô hình của bạn có hỗ trợ mô hình này không.',
       img2txtModel: 'Mô hình img2txt',
       img2txtModelTip:
-        'Mô hình đa mô-đun mặc định mà tất cả các cơ sở kiến thức mới tạo sẽ sử dụng. Nó có thể mô tả hình ảnh hoặc video.',
+        'Mô hình img2txt mặc định cho mỗi cơ sở tri thức mới được tạo. Nó mô tả một bức tranh hoặc video. Nếu bạn không thể tìm thấy mô hình từ danh sách thả xuống, hãy kiểm tra https://ragflow.io/docs/dev/supported_models để xem nhà cung cấp mô hình của bạn có hỗ trợ mô hình này không.',
       sequence2txtModel: 'Mô hình speech2txt',
       sequence2txtModelTip:
-        'Mô hình ASR mặc định mà tất cả các cơ sở kiến thức mới tạo sẽ sử dụng. Sử dụng mô hình này để chuyển đổi giọng nói thành văn bản tương ứng.',
+        'Mô hình ASR mặc định mà tất cả các cơ sở kiến thức mới tạo sẽ sử dụng. Sử dụng mô hình này để chuyển đổi giọng nói thành văn bản tương ứng. Nếu bạn không thể tìm thấy mô hình từ danh sách thả xuống, hãy kiểm tra https://ragflow.io/docs/dev/supported_models để xem nhà cung cấp mô hình của bạn có hỗ trợ mô hình này không.',
       rerankModel: 'Mô hình xếp hạng lại',
-      rerankModelTip: `Mô hình xếp hạng lại mặc định được sử dụng để xếp hạng lại các khối được truy xuất bởi các câu hỏi của người dùng.`,
+      rerankModelTip: `Mô hình rerank mặc định để reranking các đoạn văn bản. Nếu bạn không tìm thấy mô hình nào từ danh sách thả xuống, hãy kiểm tra https://ragflow.io/docs/dev/supported_models để xem nhà cung cấp mô hình của bạn có hỗ trợ mô hình này không.`,
       ttsModel: 'Mô hình TTS',
       ttsModelTip:
-        'Mô hình TTS mặc định sẽ được sử dụng để tạo giọng nói trong quá trình trò chuyện theo yêu cầu.',
+        'Mô hình text-to-speech mặc định. Nếu bạn không tìm thấy mô hình nào từ danh sách thả xuống, hãy kiểm tra https://ragflow.io/docs/dev/supported_models để xem nhà cung cấp mô hình của bạn có hỗ trợ mô hình này không.',
       workspace: 'Không gian làm việc',
       upgrade: 'Nâng cấp',
       addLlmTitle: 'Thêm LLM',
@@ -583,14 +628,25 @@ export default {
       modelType: 'Loại mô hình',
       modelTypeMessage: 'Vui lòng nhập loại mô hình của bạn!',
       addLlmBaseUrl: 'URL cơ sở',
-      baseUrlNameMessage: 'Vui lòng nhập URL cơ sở của bạn!',
+      baseUrlNameMessage: 'Vui lòng nhập URL cơ sở của bạn',
+      paddleocr: {
+        apiUrl: 'URL API PaddleOCR',
+        apiUrlPlaceholder: 'Ví dụ: https://paddleocr-server.com/layout-parsing',
+        accessToken: 'Token truy cập AI Studio',
+        accessTokenPlaceholder: 'Token AI Studio của bạn (tùy chọn)',
+        algorithm: 'Thuật toán PaddleOCR',
+        selectAlgorithm: 'Chọn thuật toán',
+        modelNamePlaceholder: 'Ví dụ: paddleocr-from-env-1',
+        modelNameRequired: 'Tên mô hình là bắt buộc',
+        apiUrlRequired: 'URL API PaddleOCR là bắt buộc',
+      },
       vision: 'Có hỗ trợ Tầm nhìn không?',
       ollamaLink: 'Cách tích hợp {{name}}',
       FishAudioLink: 'Cách sử dụng FishAudio',
       TencentCloudLink: 'Cách sử dụng TencentCloud ASR',
       volcModelNameMessage: 'Vui lòng nhập tên mô hình của bạn!',
-      addEndpointID: 'EndpointID của mô hình',
-      endpointIDMessage: 'Vui lòng nhập EndpointID của mô hình của bạn',
+      addEndpointID: 'Model ID',
+      endpointIDMessage: 'Vui lòng nhập Model ID của mô hình',
       addArkApiKey: 'VOLC ARK_API_KEY',
       ArkApiKeyMessage: 'Vui lòng nhập ARK_API_KEY của bạn',
       addBedrockEngineAK: 'KHÓA TRUY CẬP',
@@ -598,21 +654,45 @@ export default {
       addBedrockSK: 'KHÓA BÍ MẬT',
       bedrockSKMessage: 'Vui lòng nhập KHÓA BÍ MẬT của bạn',
       bedrockRegion: 'Vùng AWS',
-      bedrockRegionMessage: 'Vui lòng chọn!',
+      bedrockRegionMessage: 'Vui lòng chọn',
+      'us-east-2': 'US East (Ohio)',
       'us-east-1': 'US East (N. Virginia)',
+      'us-west-1': 'US West (N. California)',
       'us-west-2': 'US West (Oregon)',
+      'af-south-1': 'Africa (Cape Town)',
+      'ap-east-1': 'Asia Pacific (Hong Kong)',
+      'ap-south-2': 'Asia Pacific (Hyderabad)',
+      'ap-southeast-3': 'Asia Pacific (Jakarta)',
+      'ap-southeast-5': 'Asia Pacific (Malaysia)',
+      'ap-southeast-4': 'Asia Pacific (Melbourne)',
+      'ap-south-1': 'Asia Pacific (Mumbai)',
+      'ap-northeast-3': 'Asia Pacific (Osaka)',
+      'ap-northeast-2': 'Asia Pacific (Seoul)',
       'ap-southeast-1': 'Asia Pacific (Singapore)',
-      'ap-northeast-1': 'Asia Pacific (Tokyo)',
-      'eu-central-1': 'Europe (Frankfurt)',
-      'us-gov-west-1': 'AWS GovCloud (US-West)',
       'ap-southeast-2': 'Asia Pacific (Sydney)',
-      addHunyuanSID: 'Hunyuan Secret ID',
-      HunyuanSIDMessage: 'Vui lòng nhập ID bí mật của bạn',
-      addHunyuanSK: 'Hunyuan Secret Key',
-      HunyuanSKMessage: 'Vui lòng nhập Khóa bí mật của bạn',
+      'ap-east-2': 'Asia Pacific (Taipei)',
+      'ap-southeast-7': 'Asia Pacific (Thailand)',
+      'ap-northeast-1': 'Asia Pacific (Tokyo)',
+      'ca-central-1': 'Canada (Central)',
+      'ca-west-1': 'Canada West (Calgary)',
+      'eu-central-1': 'Europe (Frankfurt)',
+      'eu-west-1': 'Europe (Ireland)',
+      'eu-west-2': 'Europe (London)',
+      'eu-south-1': 'Europe (Milan)',
+      'eu-west-3': 'Europe (Paris)',
+      'eu-south-2': 'Europe (Spain)',
+      'eu-north-1': 'Europe (Stockholm)',
+      'eu-central-2': 'Europe (Zurich)',
+      'il-central-1': 'Israel (Tel Aviv)',
+      'mx-central-1': 'Mexico (Central)',
+      'me-south-1': 'Middle East (Bahrain)',
+      'me-central-1': 'Middle East (UAE)',
+      'sa-east-1': 'South America (São Paulo)',
+      'us-gov-east-1': 'AWS GovCloud (US-East)',
+      'us-gov-west-1': 'AWS GovCloud (US-West)',
       addTencentCloudSID: 'TencentCloud Secret ID',
       TencentCloudSIDMessage: 'Vui lòng nhập ID bí mật của bạn',
-      addTencentCloudSK: 'TencentCloud Secret Key',
+      addTencentCloudSK: 'TencentCloud SECRET KEY',
       TencentCloudSKMessage: 'Vui lòng nhập Khóa bí mật của bạn',
       SparkModelNameMessage: 'Vui lòng chọn mô hình Spark',
       addSparkAPIPassword: 'Mật khẩu API Spark',
@@ -644,7 +724,7 @@ export default {
         'Vui lòng nhập Khóa Tài khoản Dịch vụ Google Cloud ở định dạng base64',
       addGoogleRegion: 'Vùng Google Cloud',
       GoogleRegionMessage: 'Vui lòng nhập Vùng Google Cloud',
-      modelProvidersWarn: `Vui lòng thêm cả mô hình nhúng và LLM trong <b>Cài đặt > Nhà cung cấp mô hình</b> trước tiên. Sau đó, đặt chúng trong 'Cài đặt mô hình hệ thống'.`,
+      modelProvidersWarn: `Vui lòng thêm cả mô hình nhúng và LLM trong <b>Cài đặt > Nhà cung cấp mô hình</b> trước tiên. Sau đó, đặt chúng trong 'Đặt mô hình mặc định'.`,
       apiVersion: 'Phiên bản API',
       apiVersionMessage: 'Vui lòng nhập phiên bản API',
       add: 'Thêm',
@@ -655,12 +735,16 @@ export default {
       refuse: 'Từ chối',
       teamMembers: 'Thành viên nhóm',
       joinedTeams: 'Nhóm đã tham gia',
-      bedrockModelNameMessage: `Vui lòng nhập tên model của bạn!`,
+      bedrockModelNameMessage: `Vui lòng nhập tên model của bạn`,
       sureDelete: `Bạn có chắc chắn muốn xóa thành viên này không?`,
       quit: `Rời khỏi`,
       sureQuit: `Bạn có chắc chắn muốn rời khỏi nhóm mà bạn đã tham gia không?`,
       FishAudioAKMessage: `Vui lòng nhập KEY API`,
       FishAudioRefIDMessage: `Vui lòng nhập ID của model tham chiếu (để trống để sử dụng model mặc định)`,
+      modelsToBeAddedTooltip:
+        'Nếu nhà cung cấp mô hình của bạn không có trong danh sách nhưng tuyên bố tương thích với "OpenAI", hãy chọn thẻ OpenAI-API-compatible để thêm mô hình liên quan.',
+      dingtalkAITableDescription:
+        'Kết nối với Dingtalk AI Table và đồng bộ hóa bản ghi từ một bảng được chỉ định.',
     },
     message: {
       registered: 'Đã đăng ký!',
@@ -711,7 +795,7 @@ export default {
       directory: 'Thư mục',
       uploadTitle: 'Nhấp hoặc kéo thả tệp vào khu vực này để tải lên',
       uploadDescription:
-        'RAGFlow hỗ trợ tải lên tệp một lần hoặc theo lô. Đối với RAGFlow triển khai cục bộ: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 1GB, với giới hạn tải lên theo lô là 32 tệp. Không có giới hạn về tổng số tệp trên mỗi tài khoản. Đối với demo.ragflow.io: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 10MB, với mỗi tệp không vượt quá 10MB và tối đa là 128 tệp trên mỗi tài khoản.',
+        'RAGFlow hỗ trợ tải lên tệp một lần hoặc theo lô. Đối với RAGFlow triển khai cục bộ: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 1GB, với giới hạn tải lên theo lô là 32 tệp. Không có giới hạn về tổng số tệp trên mỗi tài khoản. Đối với cloud.ragflow.io: giới hạn tổng kích thước tệp cho mỗi lần tải lên là 10MB, với mỗi tệp không vượt quá 10MB và tối đa là 128 tệp trên mỗi tài khoản.',
       local: 'Tải lên cục bộ',
       s3: 'Tải lên S3',
       preview: 'Xem trước',
@@ -783,14 +867,31 @@ export default {
       baiduDescription: `Thành phần này được sử dụng để lấy kết quả tìm kiếm từ www.baidu.com. Thông thường, nó hoạt động như một phần bổ sung cho các cơ sở kiến thức. Top N chỉ định số lượng kết quả tìm kiếm bạn cần điều chỉnh.`,
       duckDuckGo: 'DuckDuckGo',
       duckDuckGoDescription:
-        'Một thành phần truy xuất kết quả tìm kiếm từ duckduckgo.com, với TopN xác định số lượng kết quả tìm kiếm. Nó bổ sung cho các cơ sở kiến thức hiện có.',
-      channel: 'Kênh',
-      channelTip: `Thực hiện tìm kiếm văn bản hoặc tìm kiếm tin tức trên đầu vào của thành phần`,
-      text: 'Văn bản',
-      news: 'Tin tức',
-      messageHistoryWindowSize: 'Cửa sổ lịch sử tin nhắn',
+        'Một thành phần tìm kiếm trên duckduckgo.com, cho phép bạn chỉ định số lượng kết quả tìm kiếm sử dụng TopN. Nó bổ sung cho các cơ sở kiến thức hiện có.',
+      searXNG: 'SearXNG',
+      searXNGDescription:
+        'Một thành phần tìm kiếm thông qua URL phiên bản SearXNG bạn cung cấp. Chỉ định TopN và URL phiên bản.',
+      docGenerator: 'Trình tạo Tài liệu',
+      docGeneratorDescription: `Tạo tệp từ nội dung Markdown.`,
+      subtitle: 'Phụ đề',
+      logoImage: 'Hình ảnh Logo',
+      logoPosition: 'Vị trí Logo',
+      logoWidth: 'Chiều rộng Logo',
+      logoHeight: 'Chiều cao Logo',
+      fontFamily: 'Họ phông chữ',
+      fontSize: 'Kích thước phông chữ',
+      titleFontSize: 'Kích thước phông chữ tiêu đề',
+      pageSize: 'Kích thước trang',
+      orientation: 'Hướng',
+      marginTop: 'Lề trên',
+      marginBottom: 'Lề dưới',
+      filename: 'Tên tệp',
+      outputDirectory: 'Thư mục đầu ra',
+      addPageNumbers: 'Thêm số trang',
+      addTimestamp: 'Thêm dấu thời gian',
+      watermarkText: 'Văn bản watermark',
       messageHistoryWindowSizeTip:
-        'Kích thước cửa sổ của lịch sử cuộc hội thoại cần LLM xem. Càng lớn càng tốt. Nhưng hãy cẩn thận với chiều dài nội dung tối đa của LLM.',
+        'Kích thước cửa sổ lịch sử cuộc trò chuyện hiển thị với LLM. Càng lớn càng tốt, nhưng hãy chú ý đến giới hạn tối đa số token của LLM.',
       wikipedia: 'Wikipedia',
       pubMed: 'PubMed',
       pubMedDescription:
@@ -807,11 +908,11 @@ export default {
       relevance: 'Liên quan',
       google: 'Google',
       googleDescription:
-        'Thành phần này được sử dụng để lấy kết quả tìm kiếm từ https://www.google.com/. Thông thường, nó hoạt động như một phần bổ sung cho các cơ sở kiến thức. Top N và SerpApi API key xác định số lượng kết quả tìm kiếm bạn cần điều chỉnh.',
+        'Thành phần này được sử dụng để lấy kết quả tìm kiếm từ https://www.google.com/. Thông thường, nó hoạt động như một phần bổ sung cho các cơ sở kiến thức. Top N và SerpApi API Key xác định số lượng kết quả tìm kiếm bạn cần điều chỉnh.',
       bing: 'Bing',
       bingDescription:
         'Thành phần này được sử dụng để lấy kết quả tìm kiếm từ https://www.bing.com/. Thông thường, nó hoạt động như một phần bổ sung cho các cơ sở kiến thức. Top N và Bing Subscription-Key xác định số lượng kết quả tìm kiếm bạn cần điều chỉnh.',
-      apiKey: 'API KEY',
+      apiKey: 'API Key',
       country: 'Quốc gia',
       language: 'Ngôn ngữ',
       googleScholar: 'Google Scholar',
@@ -890,7 +991,7 @@ export default {
         'Thành phần này được sử dụng để lấy thông tin thời tiết từ https://www.qweather.com/. Bạn có thể lấy thời tiết, chỉ số, chất lượng không khí.',
       lang: 'Ngôn ngữ',
       type: 'Loại',
-      webApiKey: 'Web API key',
+      webApiKey: 'Web API Key',
       userType: 'Loại người dùng',
       timePeriod: 'Kỳ hạn',
       qWeatherLangOptions: {
@@ -1091,6 +1192,8 @@ export default {
       cleanHtml: 'Làm sạch HTML',
       cleanHtmlTip:
         'Nếu phản hồi được định dạng HTML và chỉ muốn nội dung chính, hãy bật nó lên.',
+      invalidUrl:
+        'Phải là URL hợp lệ hoặc URL có chứa các biến theo định dạng {ten_bien} hoặc {thanh_phan@bien}',
       reference: 'Tham khảo',
       input: 'Đầu vào',
       output: 'Đầu ra',
@@ -1113,8 +1216,8 @@ export default {
       toEmail: 'Email người nhận',
       smtpServerRequired: 'Vui lòng nhập địa chỉ máy chủ SMTP',
       emailContent: 'Nội dung',
-      smtpServer: 'SMTP Server',
-      smtpPort: 'SMTP Port',
+      smtpServer: 'Máy chủ SMTP',
+      smtpPort: 'Cổng SMTP',
       senderEmailRequired: 'Vui lòng nhập email người gửi',
       authCodeRequired: 'Vui lòng nhập mã xác thực',
       toEmailRequired: 'Vui lòng nhập email người nhận',
@@ -1124,9 +1227,10 @@ export default {
       jsonFormatTip:
         'Thành phần thượng nguồn phải cung cấp chuỗi JSON theo định dạng sau:',
       emailComponent: 'Email',
-      senderEmail: 'Người gửi Email',
-      authCode: 'Mã xác minh',
-      senderName: 'Tên người gửi',
+      senderEmail: 'Địa chỉ người gửi (From)',
+      smtpUsername: 'Tên đăng nhập SMTP',
+      authCode: 'Mật khẩu SMTP / mật khẩu ứng dụng',
+      senderName: 'Tên hiển thị người gửi',
       jsonUploadContentErrorMessage: 'lỗi tệp json',
       contentTip: 'content: Nội dung email (Tùy chọn)',
       subjectTip: 'subject: Tiêu đề email (Tùy chọn)',
@@ -1148,6 +1252,16 @@ export default {
         minus: 'Dash',
         semicolon: 'Semicolon',
       },
+      prompt: 'Nhắc nhở',
+      promptTip:
+        'Sử dụng lời nhắc hệ thống để mô tả nhiệm vụ cho LLM, chỉ định cách nó nên phản hồi và phác thảo các yêu cầu khác nhau. Lời nhắc hệ thống thường được sử dụng kết hợp với các khóa (biến), đóng vai trò là các đầu vào dữ liệu khác nhau cho LLM. Sử dụng dấu gạch chéo `/` hoặc nút (x) để hiển thị các khóa cần sử dụng.',
+      promptMessage: 'Nhắc nhở là bắt buộc',
+      runningHintText: 'đang chạy...🕞',
+      canvasCategory: 'Danh mục canvas',
+      tags: 'Thẻ',
+      created: 'Đã tạo',
+      id: 'ID',
+      logTitle: 'Tiêu đề',
     },
     footer: {
       profile: 'All rights reserved @ React',
@@ -1156,6 +1270,15 @@ export default {
       file: 'tệp',
       knowledge: 'kiến thức',
       chat: 'trò chuyện',
+    },
+    language: {
+      english: 'Tiếng Anh',
+      chinese: 'Tiếng Trung',
+      russian: 'Tiếng Nga',
+      bulgarian: 'Tiếng Bulgaria',
+      arabic: 'Tiếng Ả Rập',
+      turkish: 'Tiếng Thổ Nhĩ Kỳ',
+      korean: 'Tiếng Hàn',
     },
   },
 };

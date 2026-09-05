@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 from abc import ABC
-import pandas as pd
+
 from agent.component.base import ComponentBase, ComponentParamBase
 
 
@@ -22,6 +22,7 @@ class IterationItemParam(ComponentParamBase):
     """
     Define the IterationItem component parameters.
     """
+
     def check(self):
         return True
 
@@ -33,21 +34,68 @@ class IterationItem(ComponentBase, ABC):
         super().__init__(canvas, id, param)
         self._idx = 0
 
-    def _run(self, history, **kwargs):
-        parent = self.get_parent()
-        ans = parent.get_input()
-        ans = parent._param.delimiter.join(ans["content"]) if "content" in ans else ""
-        ans = [a.strip() for a in ans.split(parent._param.delimiter)]
-        if not ans:
-            self._idx = -1
-            return pd.DataFrame()
+    def _invoke(self, **kwargs):
+        if self.check_if_canceled("IterationItem processing"):
+            return
 
-        df = pd.DataFrame([{"content": ans[self._idx]}])
-        self._idx += 1
-        if self._idx >= len(ans):
+        parent = self.get_parent()
+        arr = self._canvas.get_variable_value(parent._param.items_ref)
+        if not isinstance(arr, list):
             self._idx = -1
-        return df
+            raise Exception(parent._param.items_ref + " must be an array, but its type is " + str(type(arr)))
+
+        if self._idx > 0:
+            if self.check_if_canceled("IterationItem processing"):
+                return
+            self.output_collation()
+
+        if self._idx >= len(arr):
+            self._idx = -1
+            return
+
+        if self.check_if_canceled("IterationItem processing"):
+            return
+
+        current_item = arr[self._idx]
+        self.set_output("item", current_item)
+        # Keep `result` as a compatibility alias because existing DSL examples
+        # and downstream references may still consume IterationItem via `@result`.
+        self.set_output("result", current_item)
+        self.set_output("index", self._idx)
+
+        self._idx += 1
+
+    def output_collation(self):
+        pid = self.get_parent()._id
+        for cid in self._canvas.components.keys():
+            obj = self._canvas.get_component_obj(cid)
+            p = obj.get_parent()
+            if not p:
+                continue
+            if p._id != pid:
+                continue
+
+            if p.component_name.lower() in ["categorize", "message", "switch", "userfillup", "iterationitem"]:
+                continue
+
+            for k, o in p._param.outputs.items():
+                if "ref" not in o:
+                    continue
+                # Use maxsplit=1 so an `@` legitimately embedded in `var`
+                # (e.g. a user-defined output key that happens to contain
+                # '@') does not raise `ValueError: too many values to unpack`.
+                # `_cid` is system-generated and never contains '@'.
+                _cid, var = o["ref"].split("@", 1)
+                if _cid != cid:
+                    continue
+                res = p.output(k)
+                if not res:
+                    res = []
+                res.append(obj.output(var))
+                p.set_output(k, res)
 
     def end(self):
         return self._idx == -1
 
+    def thoughts(self) -> str:
+        return "Next turn..."

@@ -1,57 +1,131 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { HomeCard } from '@/components/home-card';
+import { MoreButton } from '@/components/more-button';
+import { SharedBadge } from '@/components/shared-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { AgentCategory } from '@/constants/agent';
 import { useNavigatePage } from '@/hooks/logic-hooks/navigate-hooks';
-import { IFlow } from '@/interfaces/database/flow';
-import { formatPureDate } from '@/utils/date';
-import { ChevronRight, Trash2 } from 'lucide-react';
+import { AgentListItemType, IFlow } from '@/interfaces/database/agent';
+import { CanvasCategoryToFlowType, FlowType, FlowTypeConfig } from './constant';
+import { AgentDropdown } from './agent-dropdown';
+import { useRenameAgent } from './use-rename-agent';
+import { useRef, useState } from 'react';
+import { Tag } from 'lucide-react';
 
-interface IProps {
-  data: IFlow;
+export type DatasetCardProps = {
+  data: IFlow & { type?: AgentListItemType };
+} & Pick<ReturnType<typeof useRenameAgent>, 'showAgentRenameModal'>;
+
+function AgentTypeIcon({
+  data,
+}: {
+  data: IFlow & { type?: AgentListItemType };
+}) {
+  const flowType =
+    data.type === AgentListItemType.CompilationTemplateGroup
+      ? FlowType.Compiler
+      : CanvasCategoryToFlowType[data.canvas_category ?? ''];
+
+  const config = flowType ? FlowTypeConfig[flowType] : null;
+
+  if (!config) {
+    return null;
+  }
+
+  const Icon = config.icon;
+
+  return (
+    <Button variant={'ghost'} size={'sm'}>
+      <Icon style={{ color: config.color }} />
+    </Button>
+  );
 }
 
-export function AgentCard({ data }: IProps) {
+function AgentTags({ tags }: { tags?: string }) {
+  const list = (tags || '')
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+
+  if (list.length === 0) return null;
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      const el = containerRef.current;
+      setOpen(el ? el.scrollHeight > el.clientHeight : false);
+    } else {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <Tooltip open={open} onOpenChange={handleOpenChange}>
+      <TooltipTrigger asChild>
+        <div ref={containerRef} className="line-clamp-2 leading-6 mt-1">
+          {list.map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="text-xs font-normal mr-1 space-x-1"
+            >
+              <Tag className="size-3" />
+              <span>{tag}</span>
+            </Badge>
+          ))}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="flex flex-wrap gap-1 max-w-[280px]">
+          {list.map((tag) => (
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="text-xs font-normal space-x-1"
+            >
+              <Tag className="size-3" />
+              <span>{tag}</span>
+            </Badge>
+          ))}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+export function AgentCard({ data, showAgentRenameModal }: DatasetCardProps) {
   const { navigateToAgent } = useNavigatePage();
 
   return (
-    <Card className="bg-colors-background-inverse-weak  border-colors-outline-neutral-standard">
-      <CardContent className="p-4">
-        <div className="flex justify-between mb-4">
-          {data.avatar ? (
-            <div
-              className="w-[70px] h-[70px] rounded-xl bg-cover"
-              style={{ backgroundImage: `url(${data.avatar})` }}
-            />
-          ) : (
-            <Avatar className="w-[70px] h-[70px]">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          )}
-        </div>
-        <h3 className="text-xl font-bold mb-2">{data.title}</h3>
-        <p>An app that does things An app that does things</p>
-        <section className="flex justify-between pt-3">
-          <div>
-            Search app
-            <p className="text-sm opacity-80">
-              {formatPureDate(data.update_time)}
-            </p>
-          </div>
-          <div className="space-x-2">
-            <Button
-              variant="icon"
-              size="icon"
-              onClick={navigateToAgent(data.id)}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-            <Button variant="icon" size="icon">
-              <Trash2 />
-            </Button>
-          </div>
-        </section>
-      </CardContent>
-    </Card>
+    <HomeCard
+      testId="agent-card"
+      data={{
+        ...data,
+        name: data.title,
+        description: data.description || '',
+        release_time: data.release_time,
+      }}
+      moreDropdown={
+        <AgentDropdown showAgentRenameModal={showAgentRenameModal} agent={data}>
+          <MoreButton></MoreButton>
+        </AgentDropdown>
+      }
+      sharedBadge={<SharedBadge>{data.nickname}</SharedBadge>}
+      onClick={
+        // data.canvas_category === AgentCategory.DataflowCanvas
+        //   ? navigateToDataflow(data.id)
+        //   :
+        navigateToAgent(data?.id, data.canvas_category as AgentCategory)
+      }
+      icon={<AgentTypeIcon data={data} />}
+      extra={<AgentTags tags={data.tags} />}
+      showReleaseTime
+    />
   );
 }

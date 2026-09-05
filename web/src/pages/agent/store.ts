@@ -1,9 +1,11 @@
-import { RAGFlowNodeType } from '@/interfaces/database/flow';
+import type { IAgentForm } from '@/interfaces/database/agent';
+import { RAGFlowNodeType } from '@/interfaces/database/agent';
 import type {} from '@redux-devtools/extension';
 import {
   Connection,
   Edge,
   EdgeChange,
+  EdgeMouseHandler,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
@@ -13,30 +15,148 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
 } from '@xyflow/react';
-import { omit } from 'lodash';
-import differenceWith from 'lodash/differenceWith';
-import intersectionWith from 'lodash/intersectionWith';
-import lodashSet from 'lodash/set';
+import humanId from 'human-id';
+import {
+  cloneDeep,
+  differenceWith,
+  intersectionWith,
+  get as lodashGet,
+  set as lodashSet,
+  omit,
+} from 'lodash';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { Operator, SwitchElseTo } from './constant';
+import { NodeHandleId, Operator, SwitchElseTo } from './constant';
 import {
   duplicateNodeForm,
   generateDuplicateNode,
   generateNodeNamesWithIncreasingIndex,
+  getAgentNodeTools,
   getOperatorIndex,
   isEdgeEqual,
+  mapEdgeMouseEvent,
 } from './utils';
+import { deleteAllDownstreamAgentsAndTool } from './utils/delete-node';
+import {
+  CollapsedBottomHandles,
+  filterBottomSubtreeNodeIds,
+  filterCollapsedHiddenIds,
+  toggleCollapsedBottomHandle,
+} from './utils/filter-downstream-nodes';
+
+type IAgentTool = IAgentForm['tools'][number];
+
+const collectDescendantNodeIds = (
+  nodes: RAGFlowNodeType[],
+  rootId: string,
+): string[] => {
+  const descendantNodeIds: string[] = [];
+  const queue = [rootId];
+
+  while (queue.length > 0) {
+    const currentNodeId = queue.shift();
+    if (!currentNodeId) {
+      continue;
+    }
+
+    const childNodeIds = nodes
+      .filter((node) => node.parentId === currentNodeId)
+      .map((node) => node.id);
+
+    childNodeIds.forEach((nodeId) => {
+      if (!descendantNodeIds.includes(nodeId)) {
+        descendantNodeIds.push(nodeId);
+        queue.push(nodeId);
+      }
+    });
+  }
+
+  return descendantNodeIds;
+};
+
+const collectAgentAttachmentNodeIds = (
+  nodes: RAGFlowNodeType[],
+  edges: Edge[],
+  rootNodeIds: string[],
+) => {
+  const attachedNodeIds: string[] = [];
+
+  rootNodeIds.forEach((nodeId) => {
+    const node = nodes.find((item) => item.id === nodeId);
+    if (node?.data?.label !== Operator.Agent) {
+      return;
+    }
+
+    const { downstreamAgentAndToolNodeIds } = deleteAllDownstreamAgentsAndTool(
+      nodeId,
+      edges,
+    );
+
+    downstreamAgentAndToolNodeIds.forEach((attachedNodeId) => {
+      if (!attachedNodeIds.includes(attachedNodeId)) {
+        attachedNodeIds.push(attachedNodeId);
+      }
+    });
+  });
+
+  return attachedNodeIds;
+};
+
+export const collectDeletionNodeIds = (
+  nodes: RAGFlowNodeType[],
+  edges: Edge[],
+  rootId: string,
+): string[] => {
+  const deletedNodeIds = [rootId, ...collectDescendantNodeIds(nodes, rootId)];
+  const attachedNodeIds = collectAgentAttachmentNodeIds(
+    nodes,
+    edges,
+    deletedNodeIds,
+  );
+
+  attachedNodeIds.forEach((nodeId) => {
+    if (!deletedNodeIds.includes(nodeId)) {
+      deletedNodeIds.push(nodeId);
+    }
+  });
+
+  return deletedNodeIds;
+};
+
+export const removeEdgesForNodeIds = (edges: Edge[], nodeIds: string[]) => {
+  const nodeIdSet = new Set(nodeIds);
+
+  return edges.filter(
+    (edge) => !nodeIdSet.has(edge.source) && !nodeIdSet.has(edge.target),
+  );
+};
+
+interface GetAgentToolByIdFunc {
+  (id: string): IAgentTool | undefined;
+  (id: string, agentNode: RAGFlowNodeType): IAgentTool | undefined;
+  (id: string, agentNodeId: string): IAgentTool | undefined;
+}
+
+interface UpdateAgentToolByIdFunc {
+  (agentNode: RAGFlowNodeType, id: string, value?: Partial<IAgentTool>): void;
+  (agentNodeId: string, id: string, value?: Partial<IAgentTool>): void;
+}
 
 export type RFState = {
   nodes: RAGFlowNodeType[];
   edges: Edge[];
   selectedNodeIds: string[];
   selectedEdgeIds: string[];
+  // Collapsed bottom handles per node: nodeId -> collapsed handle ids
+  collapsedBottomHandles: CollapsedBottomHandles;
   clickedNodeId: string; // currently selected node
+  clickedToolId: string; // currently selected tool id
   onNodesChange: OnNodesChange<RAGFlowNodeType>;
   onEdgesChange: OnEdgesChange;
+  onEdgeMouseEnter?: EdgeMouseHandler<Edge>;
+  /** This event handler is called when mouse of a user leaves an edge */
+  onEdgeMouseLeave?: EdgeMouseHandler<Edge>;
   onConnect: OnConnect;
   setNodes: (nodes: RAGFlowNodeType[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -46,9 +166,11 @@ export type RFState = {
     values: any,
     path?: (string | number)[],
   ) => RAGFlowNodeType[];
+  replaceNodeForm: (nodeId: string, values: any) => void;
   onSelectionChange: OnSelectionChangeFunc;
   addNode: (nodes: RAGFlowNodeType) => void;
   getNode: (id?: string | null) => RAGFlowNodeType | undefined;
+  updateNode: (node: RAGFlowNodeType) => void;
   addEdge: (connection: Connection) => void;
   getEdge: (id: string) => Edge | undefined;
   updateFormDataOnConnect: (connection: Connection) => void;
@@ -56,22 +178,43 @@ export type RFState = {
     source: string,
     sourceHandle?: string | null,
     target?: string | null,
+    isConnecting?: boolean,
   ) => void;
-  deletePreviousEdgeOfClassificationNode: (connection: Connection) => void;
   duplicateNode: (id: string, name: string) => void;
   duplicateIterationNode: (id: string, name: string) => void;
   deleteEdge: () => void;
   deleteEdgeById: (id: string) => void;
   deleteNodeById: (id: string) => void;
+  deleteAgentDownstreamNodesById: (id: string) => void;
+  deleteAgentToolNodeById: (id: string) => void;
   deleteIterationNodeById: (id: string) => void;
-  deleteEdgeBySourceAndSourceHandle: (connection: Partial<Connection>) => void;
   findNodeByName: (operatorName: Operator) => RAGFlowNodeType | undefined;
   updateMutableNodeFormItem: (id: string, field: string, value: any) => void;
   getOperatorTypeFromId: (id?: string | null) => string | undefined;
   getParentIdById: (id?: string | null) => string | undefined;
   updateNodeName: (id: string, name: string) => void;
   generateNodeName: (name: string) => string;
+  generateAgentToolId: (prefix: string) => string;
+  getAllAgentTools: () => IAgentTool[];
+  getAgentToolById: GetAgentToolByIdFunc;
+  updateAgentToolById: UpdateAgentToolByIdFunc;
   setClickedNodeId: (id?: string) => void;
+  setClickedToolId: (id?: string) => void;
+  findUpstreamNodeById: (id?: string | null) => RAGFlowNodeType | undefined;
+  deleteEdgesBySourceAndSourceHandle: (
+    source: string,
+    sourceHandle: string,
+  ) => void; // Deleting a condition of a classification operator will delete the related edge
+  findAgentToolNodeById: (id: string | null) => string | undefined;
+  selectNodeIds: (nodeIds: string[]) => void;
+  toggleBottomCollapse: (nodeId: string, handleId: NodeHandleId) => void;
+  hasDownstreamNode: (nodeId: string) => boolean;
+  hasUpstreamNode: (nodeId: string) => boolean;
+  // Nodes whose form the user has actually edited this session. The save gate
+  // only validates these, so a node carrying stale DSL from an older version
+  // never blocks a save the user did not cause.
+  editedNodeFormIds: string[];
+  markNodeFormEdited: (nodeId: string) => void;
 };
 
 // this is our useStore hook that we can use in our components to get parts of the store and call actions
@@ -82,7 +225,18 @@ const useGraphStore = create<RFState>()(
       edges: [] as Edge[],
       selectedNodeIds: [] as string[],
       selectedEdgeIds: [] as string[],
+      collapsedBottomHandles: {} as CollapsedBottomHandles,
       clickedNodeId: '',
+      clickedToolId: '',
+      editedNodeFormIds: [] as string[],
+      markNodeFormEdited: (nodeId: string) => {
+        if (get().editedNodeFormIds.includes(nodeId)) {
+          return;
+        }
+        set((state) => {
+          state.editedNodeFormIds.push(nodeId);
+        });
+      },
       onNodesChange: (changes) => {
         set({
           nodes: applyNodeChanges(changes, get().nodes),
@@ -93,15 +247,26 @@ const useGraphStore = create<RFState>()(
           edges: applyEdgeChanges(changes, get().edges),
         });
       },
+      onEdgeMouseEnter: (event, edge) => {
+        const { edges, setEdges } = get();
+        const edgeId = edge.id;
+
+        // Updates edge
+        setEdges(mapEdgeMouseEvent(edges, edgeId, true));
+      },
+      onEdgeMouseLeave: (event, edge) => {
+        const { edges, setEdges } = get();
+        const edgeId = edge.id;
+
+        // Updates edge
+        setEdges(mapEdgeMouseEvent(edges, edgeId, false));
+      },
       onConnect: (connection: Connection) => {
-        const {
-          deletePreviousEdgeOfClassificationNode,
-          updateFormDataOnConnect,
-        } = get();
+        const { updateFormDataOnConnect } = get();
+        const newEdges = addEdge(connection, get().edges);
         set({
-          edges: addEdge(connection, get().edges),
+          edges: newEdges,
         });
-        deletePreviousEdgeOfClassificationNode(connection);
         updateFormDataOnConnect(connection);
       },
       onSelectionChange: ({ nodes, edges }: OnSelectionChangeParams) => {
@@ -165,7 +330,18 @@ const useGraphStore = create<RFState>()(
       addNode: (node: RAGFlowNodeType) => {
         set({ nodes: get().nodes.concat(node) });
       },
+      updateNode: (node) => {
+        const { nodes } = get();
+        const nextNodes = nodes.map((x) => {
+          if (x.id === node.id) {
+            return node;
+          }
+          return x;
+        });
+        set({ nodes: nextNodes });
+      },
       getNode: (id?: string | null) => {
+        // console.log('getNode', id, get().nodes);
         return get().nodes.find((x) => x.id === id);
       },
       getOperatorTypeFromId: (id?: string | null) => {
@@ -178,7 +354,6 @@ const useGraphStore = create<RFState>()(
         set({
           edges: addEdge(connection, get().edges),
         });
-        get().deletePreviousEdgeOfClassificationNode(connection);
         //  TODO: This may not be reasonable. You need to choose between listening to changes in the form.
         get().updateFormDataOnConnect(connection);
       },
@@ -186,54 +361,17 @@ const useGraphStore = create<RFState>()(
         return get().edges.find((x) => x.id === id);
       },
       updateFormDataOnConnect: (connection: Connection) => {
-        const { getOperatorTypeFromId, updateNodeForm, updateSwitchFormData } =
-          get();
+        const { getOperatorTypeFromId, updateSwitchFormData } = get();
         const { source, target, sourceHandle } = connection;
         const operatorType = getOperatorTypeFromId(source);
         if (source) {
           switch (operatorType) {
-            case Operator.Relevant:
-              updateNodeForm(source, { [sourceHandle as string]: target });
-              break;
-            case Operator.Categorize:
-              if (sourceHandle)
-                updateNodeForm(source, target, [
-                  'category_description',
-                  sourceHandle,
-                  'to',
-                ]);
-              break;
             case Operator.Switch: {
-              updateSwitchFormData(source, sourceHandle, target);
+              updateSwitchFormData(source, sourceHandle, target, true);
               break;
             }
             default:
               break;
-          }
-        }
-      },
-      deletePreviousEdgeOfClassificationNode: (connection: Connection) => {
-        // Delete the edge on the classification node or relevant node anchor when the anchor is connected to other nodes
-        const { edges, getOperatorTypeFromId, deleteEdgeById } = get();
-        // the node containing the anchor
-        const anchoredNodes = [
-          Operator.Categorize,
-          Operator.Relevant,
-          Operator.Switch,
-        ];
-        if (
-          anchoredNodes.some(
-            (x) => x === getOperatorTypeFromId(connection.source),
-          )
-        ) {
-          const previousEdge = edges.find(
-            (x) =>
-              x.source === connection.source &&
-              x.sourceHandle === connection.sourceHandle &&
-              x.target !== connection.target,
-          );
-          if (previousEdge) {
-            deleteEdgeById(previousEdge.id);
           }
         }
       },
@@ -294,34 +432,24 @@ const useGraphStore = create<RFState>()(
         });
       },
       deleteEdgeById: (id: string) => {
-        const {
-          edges,
-          updateNodeForm,
-          getOperatorTypeFromId,
-          updateSwitchFormData,
-        } = get();
+        const { edges, getOperatorTypeFromId, updateSwitchFormData } = get();
         const currentEdge = edges.find((x) => x.id === id);
 
         if (currentEdge) {
-          const { source, sourceHandle } = currentEdge;
+          const { source, sourceHandle, target } = currentEdge;
           const operatorType = getOperatorTypeFromId(source);
           // After deleting the edge, set the corresponding field in the node's form field to undefined
           switch (operatorType) {
-            case Operator.Relevant:
-              updateNodeForm(source, {
-                [sourceHandle as string]: undefined,
-              });
-              break;
-            case Operator.Categorize:
-              if (sourceHandle)
-                updateNodeForm(source, undefined, [
-                  'category_description',
-                  sourceHandle,
-                  'to',
-                ]);
-              break;
+            // case Operator.Categorize:
+            //   if (sourceHandle)
+            //     updateNodeForm(source, undefined, [
+            //       'category_description',
+            //       sourceHandle,
+            //       'to',
+            //     ]);
+            //   break;
             case Operator.Switch: {
-              updateSwitchFormData(source, sourceHandle, undefined);
+              updateSwitchFormData(source, sourceHandle, target, false);
               break;
             }
             default:
@@ -332,21 +460,17 @@ const useGraphStore = create<RFState>()(
           edges: edges.filter((edge) => edge.id !== id),
         });
       },
-      deleteEdgeBySourceAndSourceHandle: ({
-        source,
-        sourceHandle,
-      }: Partial<Connection>) => {
-        const { edges } = get();
-        const nextEdges = edges.filter(
-          (edge) =>
-            edge.source !== source || edge.sourceHandle !== sourceHandle,
-        );
-        set({
-          edges: nextEdges,
-        });
-      },
       deleteNodeById: (id: string) => {
-        const { nodes, edges } = get();
+        const {
+          nodes,
+          edges,
+          getOperatorTypeFromId,
+          deleteAgentDownstreamNodesById,
+        } = get();
+        if (getOperatorTypeFromId(id) === Operator.Agent) {
+          deleteAgentDownstreamNodesById(id);
+          return;
+        }
         set({
           nodes: nodes.filter((node) => node.id !== id),
           edges: edges
@@ -354,19 +478,65 @@ const useGraphStore = create<RFState>()(
             .filter((edge) => edge.target !== id),
         });
       },
-      deleteIterationNodeById: (id: string) => {
-        const { nodes, edges } = get();
-        const children = nodes.filter((node) => node.parentId === id);
+      deleteAgentDownstreamNodesById: (id) => {
+        const { edges, nodes } = get();
+
+        const { downstreamAgentAndToolNodeIds, downstreamAgentAndToolEdges } =
+          deleteAllDownstreamAgentsAndTool(id, edges);
+
         set({
-          nodes: nodes.filter((node) => node.id !== id && node.parentId !== id),
+          nodes: nodes.filter(
+            (node) =>
+              !downstreamAgentAndToolNodeIds.some((x) => x === node.id) &&
+              node.id !== id,
+          ),
           edges: edges.filter(
             (edge) =>
               edge.source !== id &&
               edge.target !== id &&
-              !children.some(
-                (child) => edge.source === child.id && edge.target === child.id,
-              ),
+              !downstreamAgentAndToolEdges.some((x) => x.id === edge.id),
           ),
+        });
+      },
+      deleteAgentToolNodeById: (id) => {
+        const { edges, deleteEdgeById, deleteNodeById } = get();
+
+        const edge = edges.find(
+          (x) => x.source === id && x.sourceHandle === NodeHandleId.Tool,
+        );
+
+        if (edge) {
+          deleteEdgeById(edge.id);
+          deleteNodeById(edge.target);
+        }
+      },
+      deleteIterationNodeById: (id: string) => {
+        const {
+          nodes,
+          edges,
+          selectedNodeIds,
+          selectedEdgeIds,
+          clickedNodeId,
+        } = get();
+        const deletedNodeIds = collectDeletionNodeIds(nodes, edges, id);
+        const deletedNodeIdSet = new Set(deletedNodeIds);
+        const remainingEdges = removeEdgesForNodeIds(edges, deletedNodeIds);
+        const remainingEdgeIdSet = new Set(
+          remainingEdges.map((edge) => edge.id),
+        );
+
+        set({
+          nodes: nodes.filter((node) => !deletedNodeIdSet.has(node.id)),
+          edges: remainingEdges,
+          selectedNodeIds: selectedNodeIds.filter(
+            (nodeId) => !deletedNodeIdSet.has(nodeId),
+          ),
+          selectedEdgeIds: selectedEdgeIds.filter((edgeId) =>
+            remainingEdgeIdSet.has(edgeId),
+          ),
+          clickedNodeId: deletedNodeIdSet.has(clickedNodeId)
+            ? ''
+            : clickedNodeId,
         });
       },
       findNodeByName: (name: Operator) => {
@@ -377,40 +547,64 @@ const useGraphStore = create<RFState>()(
         values: any,
         path: (string | number)[] = [],
       ) => {
-        const nextNodes = get().nodes.map((node) => {
-          if (node.id === nodeId) {
-            let nextForm: Record<string, unknown> = { ...node.data.form };
-            if (path.length === 0) {
-              nextForm = Object.assign(nextForm, values);
-            } else {
-              lodashSet(nextForm, path, values);
+        set((state) => {
+          const node = state.nodes.find((x) => x.id === nodeId);
+          if (!node) {
+            return;
+          }
+          const form = (node.data.form ??= {});
+          // Deep clone to decouple from react-hook-form's internal values:
+          // immer freezes the produced state, and RHF keeps mutating the same
+          // nested references afterwards, which would throw on frozen arrays.
+          if (path.length === 0) {
+            Object.assign(form, cloneDeep(values));
+          } else {
+            lodashSet(form, path, cloneDeep(values));
+          }
+        });
+
+        return get().nodes;
+      },
+      replaceNodeForm(nodeId, values) {
+        if (nodeId) {
+          set((state) => {
+            for (const node of state.nodes) {
+              if (node.id === nodeId) {
+                // See updateNodeForm for why the deep clone is needed.
+                node.data.form = cloneDeep(values);
+                break;
+              }
             }
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                form: nextForm,
-              },
-            } as any;
+          });
+        }
+      },
+      updateSwitchFormData: (source, sourceHandle, target, isConnecting) => {
+        const { updateNodeForm, edges, getOperatorTypeFromId } = get();
+        if (sourceHandle) {
+          // A handle will connect to multiple downstream nodes
+          const currentHandleTargets = edges
+            .filter(
+              (x) =>
+                x.source === source &&
+                x.sourceHandle === sourceHandle &&
+                typeof x.target === 'string' &&
+                getOperatorTypeFromId(x.target) !== Operator.Placeholder,
+            )
+            .map((x) => x.target);
+
+          let targets: string[] = currentHandleTargets;
+          if (target) {
+            if (!isConnecting) {
+              targets = currentHandleTargets.filter((x) => x !== target);
+            }
           }
 
-          return node;
-        });
-        set({
-          nodes: nextNodes,
-        });
-
-        return nextNodes;
-      },
-      updateSwitchFormData: (source, sourceHandle, target) => {
-        const { updateNodeForm } = get();
-        if (sourceHandle) {
           if (sourceHandle === SwitchElseTo) {
-            updateNodeForm(source, target, [SwitchElseTo]);
+            updateNodeForm(source, targets, [SwitchElseTo]);
           } else {
             const operatorIndex = getOperatorIndex(sourceHandle);
             if (operatorIndex) {
-              updateNodeForm(source, target, [
+              updateNodeForm(source, targets, [
                 'conditions',
                 Number(operatorIndex) - 1, // The index is the conditions form index
                 'to',
@@ -428,14 +622,13 @@ const useGraphStore = create<RFState>()(
       },
       updateNodeName: (id, name) => {
         if (id) {
-          set({
-            nodes: get().nodes.map((node) => {
+          set((state) => {
+            for (const node of state.nodes) {
               if (node.id === id) {
                 node.data.name = name;
+                break;
               }
-
-              return node;
-            }),
+            }
           });
         }
       },
@@ -447,8 +640,155 @@ const useGraphStore = create<RFState>()(
 
         return generateNodeNamesWithIncreasingIndex(name, nodes);
       },
+      generateAgentToolId: (prefix: string) => {
+        const allAgentToolIds = get()
+          .getAllAgentTools()
+          .map((t) => t.id || t.component_name);
+
+        let id: string;
+
+        // Loop for avoiding id collisions
+        do {
+          id = `${prefix}:${humanId()}`;
+        } while (allAgentToolIds.includes(id));
+
+        return id;
+      },
+      getAllAgentTools: () => {
+        return get()
+          .nodes.filter((n) => n?.data?.label === Operator.Agent)
+          .flatMap((n) => n?.data?.form?.tools);
+      },
+      getAgentToolById: (
+        id: string,
+        nodeOrNodeId?: RAGFlowNodeType | string,
+      ) => {
+        // oxlint-disable-next-line eqeqeq
+        const tools =
+          nodeOrNodeId != null
+            ? getAgentNodeTools(
+                typeof nodeOrNodeId === 'string'
+                  ? get().getNode(nodeOrNodeId)
+                  : nodeOrNodeId,
+              )
+            : get().getAllAgentTools();
+
+        // For backward compatibility
+        return tools.find((t) => (t.id || t.component_name) === id);
+      },
+      updateAgentToolById: (
+        nodeOrNodeId: RAGFlowNodeType | string,
+        id: string,
+        value?: Partial<IAgentTool>,
+      ) => {
+        const { getNode, updateNodeForm } = get();
+
+        const agentNode =
+          typeof nodeOrNodeId === 'string'
+            ? getNode(nodeOrNodeId)
+            : nodeOrNodeId;
+
+        if (!agentNode) {
+          return;
+        }
+
+        const toolIndex = getAgentNodeTools(agentNode).findIndex(
+          (t) => (t.id || t.component_name) === id,
+        );
+
+        updateNodeForm(
+          agentNode.id,
+          {
+            ...lodashGet(agentNode.data.form, ['tools', toolIndex], {}),
+            ...(value ?? {}),
+          },
+          ['tools', toolIndex],
+        );
+      },
+      setClickedToolId: (id?: string) => {
+        set({ clickedToolId: id });
+      },
+      findUpstreamNodeById: (id) => {
+        const { edges, getNode } = get();
+        const edge = edges.find((x) => x.target === id);
+        return getNode(edge?.source);
+      },
+      deleteEdgesBySourceAndSourceHandle: (source, sourceHandle) => {
+        const { edges, setEdges } = get();
+        setEdges(
+          edges.filter(
+            (edge) =>
+              !(edge.source === source && edge.sourceHandle === sourceHandle),
+          ),
+        );
+      },
+      findAgentToolNodeById: (id) => {
+        const { edges } = get();
+        return edges.find(
+          (edge) =>
+            edge.source === id && edge.sourceHandle === NodeHandleId.Tool,
+        )?.target;
+      },
+      selectNodeIds: (nodeIds) => {
+        const { nodes, setNodes } = get();
+        setNodes(
+          nodes.map((node) => ({
+            ...node,
+            selected: nodeIds.includes(node.id),
+          })),
+        );
+      },
+      toggleBottomCollapse: (nodeId, handleId) => {
+        const { edges, collapsedBottomHandles } = get();
+        if (filterBottomSubtreeNodeIds(edges, nodeId, handleId).length === 0) {
+          return;
+        }
+        const nextCollapsed = toggleCollapsedBottomHandle(
+          collapsedBottomHandles,
+          nodeId,
+          handleId,
+        );
+        const { hiddenNodeIds, hiddenEdgeIds } = filterCollapsedHiddenIds(
+          edges,
+          nextCollapsed,
+        );
+
+        set((state) => {
+          state.collapsedBottomHandles = nextCollapsed;
+          for (const node of state.nodes) {
+            if (hiddenNodeIds.has(node.id)) {
+              node.hidden = true;
+              node.selected = false;
+            } else if (node.hidden) {
+              node.hidden = false;
+            }
+          }
+          for (const edge of state.edges) {
+            if (hiddenEdgeIds.has(edge.id)) {
+              edge.hidden = true;
+              edge.selected = false;
+            } else if (edge.hidden) {
+              edge.hidden = false;
+            }
+          }
+          state.selectedNodeIds = state.selectedNodeIds.filter(
+            (x) => !hiddenNodeIds.has(x),
+          );
+          state.selectedEdgeIds = state.selectedEdgeIds.filter(
+            (x) => !hiddenEdgeIds.has(x),
+          );
+        });
+      },
+      hasDownstreamNode: (nodeId) => {
+        const { edges } = get();
+        return edges.some((edge) => edge.source === nodeId);
+      },
+      hasUpstreamNode: (nodeId) => {
+        const { edges } = get();
+        return edges.some((edge) => edge.target === nodeId);
+      },
     })),
-    { name: 'graph' },
+    { name: 'graph', trace: true },
   ),
 );
 

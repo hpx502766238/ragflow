@@ -19,6 +19,8 @@ export default {
       portugueseBr: 'Portugis (Brasil)',
       chinese: 'Cina',
       traditionalChinese: 'Cina Tradisional',
+      bulgarian: 'Bulgaria',
+      arabic: 'Arab',
       language: 'Bahasa',
       languageMessage: 'Silakan masukkan bahasa Anda!',
       languagePlaceholder: 'Pilih bahasa Anda',
@@ -34,6 +36,8 @@ export default {
       preview: 'Pratinjau',
       move: 'Pindahkan',
       warn: 'Peringatan',
+      owner: 'Pemilik',
+      running: 'Berjalan...',
     },
     login: {
       login: 'Masuk',
@@ -100,6 +104,8 @@ export default {
       disabled: 'Nonaktifkan',
       action: 'Aksi',
       parsingStatus: 'Status Parsing',
+      parsingStatusTip:
+        'Waktu pemrosesan dokumen bervariasi tergantung beberapa faktor. Mengaktifkan fitur seperti Knowledge Graph, RAPTOR, Ekstraksi Pertanyaan Otomatis, atau Ekstraksi Kata Kunci Otomatis akan secara signifikan menambah waktu pemrosesan. Jika bilah kemajuan macet, silakan lihat dua FAQ berikut: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
       processBeginAt: 'Proses Dimulai Pada',
       processDuration: 'Durasi Proses',
       progressMsg: 'Pesan Kemajuan',
@@ -107,7 +113,7 @@ export default {
         'Lakukan tes pengambilan untuk memeriksa apakah RAGFlow dapat memulihkan konten yang diinginkan untuk LLM. ',
       similarityThreshold: 'Similarity threshold',
       similarityThresholdTip:
-        'Kami menggunakan skor kesamaan hibrida untuk mengevaluasi jarak antara dua baris teks. Ini adalah kesamaan kata kunci berbobot dan kesamaan kosinus vektor. Jika kesamaan antara kueri dan potongan kurang dari ambang ini, potongan akan disaring.',
+        'Kami menggunakan skor kesamaan hibrida untuk mengevaluasi jarak antara dua baris teks. Ini adalah kesamaan kata kunci berbobot dan kesamaan kosinus vektor. Jika kesamaan antara kueri dan potongan kurang dari ambang ini, potongan akan disaring. Secara default, ambang batas diatur ke 20. Itu berarti hanya potongan dengan skor kemiripan hibrida 20 atau lebih tinggi yang akan diambil.',
       vectorSimilarityWeight: 'Bobot kesamaan kata kunci',
       vectorSimilarityWeightTip:
         'Kami menggunakan skor kesamaan hibrida untuk mengevaluasi jarak antara dua baris teks. Ini adalah kesamaan kata kunci berbobot dan kesamaan kosinus vektor atau skor rerank (0~1). Jumlah dari kedua bobot adalah 1.0.',
@@ -127,6 +133,7 @@ export default {
       runningStatus2: 'BATAL',
       runningStatus3: 'SUKSES',
       runningStatus4: 'GAGAL',
+      runningStatusQueued: 'Dalam antrean',
       pageRanges: 'Rentang Halaman',
       pageRangesTip:
         'rentang halaman: Tentukan rentang halaman yang perlu diparsing. Halaman yang tidak termasuk dalam rentang ini akan diabaikan.',
@@ -136,7 +143,7 @@ export default {
       toMessage: 'Nomor halaman akhir hilang (tidak termasuk)',
       layoutRecognize: 'Pengenalan tata letak',
       layoutRecognizeTip:
-        'Gunakan model visual untuk analisis tata letak untuk lebih mengidentifikasi struktur dokumen, menemukan di mana judul, blok teks, gambar, dan tabel berada. Tanpa fitur ini, hanya teks biasa dari PDF yang dapat diperoleh.',
+        'Gunakan model visual untuk analisis tata letak untuk lebih mengidentifikasi struktur dokumen, menemukan di mana judul, blok teks, gambar, and tabel berada. Tanpa fitur ini, hanya teks biasa dari PDF yang dapat diperoleh. Untuk informasi lebih lanjut, lihat https://ragflow.io/docs/dataset_configuration#document-parsing-configuration.',
       taskPageSize: 'Ukuran halaman tugas',
       taskPageSizeMessage: 'Silakan masukkan ukuran halaman tugas Anda!',
       taskPageSizeTip: `Jika menggunakan pengenalan tata letak, file PDF akan dibagi menjadi kelompok berturut-turut. Analisis tata letak akan dilakukan secara paralel antar kelompok untuk meningkatkan kecepatan pemrosesan. 'Ukuran halaman tugas' menentukan ukuran kelompok. Semakin besar ukuran halaman, semakin kecil kemungkinan teks berkelanjutan antara halaman dibagi menjadi potongan yang berbeda.`,
@@ -147,20 +154,23 @@ export default {
       changeSpecificCategory: 'Ubah kategori spesifik',
       uploadTitle: 'Klik atau seret file ke area ini untuk mengunggah',
       uploadDescription:
-        'RAGFlow mendukung pengunggahan file secara tunggal atau batch. Untuk RAGFlow yang dideploy secara lokal: batas ukuran total file per unggahan adalah 1GB, dengan batas unggahan batch sebanyak 32 file. Tidak ada batasan jumlah total file per akun. Untuk demo.ragflow.io: batas ukuran total file per unggahan adalah 10MB, dengan setiap file tidak melebihi 10MB dan maksimum 128 file per akun.',
+        'RAGFlow mendukung pengunggahan file secara tunggal atau batch. Untuk RAGFlow yang dideploy secara lokal: batas ukuran total file per unggahan adalah 1GB, dengan batas unggahan batch sebanyak 32 file. Tidak ada batasan jumlah total file per akun. Untuk cloud.ragflow.io: batas ukuran total file per unggahan adalah 10MB, dengan setiap file tidak melebihi 10MB dan maksimum 128 file per akun.',
       chunk: 'Potongan',
       bulk: 'Massal',
       cancel: 'Batal',
       rerankModel: 'Model Rerank',
       rerankPlaceholder: 'Silakan pilih',
-      rerankTip: `Jika kosong. Ini menggunakan embedding dari kueri dan potongan untuk menghitung kesamaan kosinus vektor. Jika tidak, ini menggunakan skor rerank sebagai pengganti kesamaan kosinus vektor.`,
+      rerankTip: `Opsional. Jika dikosongkan, RAGFlow akan menggunakan kombinasi kesamaan kata kunci berbobot dan kesamaan kosinus vektor berbobot; jika model rerank dipilih, skor reranking berbobot akan menggantikan kesamaan kosinus vektor berbobot. Harap diperhatikan bahwa menggunakan model rerank akan secara signifikan meningkatkan waktu respons sistem. Jika Anda ingin menggunakan model rerank, pastikan menggunakan SaaS reranker; jika Anda lebih memilih model rerank yang dijalankan secara lokal, pastikan memulai RAGFlow dengan docker-compose-gpu.yml.`,
       topK: 'Top-K',
-      topKTip: `K potongan akan dimasukkan ke dalam model rerank.`,
-      delimiter: `Pembatas`,
+      topKTip: `Digunakan bersama dengan Rerank model, pengaturan ini menentukan jumlah potongan teks yang akan dikirim ke model reranking yang ditentukan.`,
+      delimiter: `Pemisah untuk segmentasi teks`,
       html4excel: 'Excel ke HTML',
-      html4excelTip: `Excel akan diparsing menjadi tabel HTML atau tidak. Jika FALSE, setiap baris di Excel akan dibentuk sebagai potongan.`,
+      html4excelTip: `Gunakan bersama dengan metode pemotongan General. Ketika dinonaktifkan, file spreadsheet (XLSX, XLS (Excel 97-2003)) akan dianalisis baris demi baris menjadi pasangan kunci-nilai. Ketika diaktifkan, file spreadsheet akan dianalisis menjadi tabel HTML. Jika tabel asli memiliki lebih dari 12 baris, sistem akan secara otomatis membagi menjadi beberapa tabel HTML setiap 12 baris. Untuk informasi lebih lanjut, lihat https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration.`,
     },
     knowledgeConfiguration: {
+      imageTableContextWindow: 'Jendela konteks gambar & tabel',
+      imageTableContextWindowTip:
+        'Mengambil N token teks di atas dan di bawah gambar dan tabel untuk memberikan konteks latar yang lebih kaya.',
       titleDescription:
         'Perbarui detail basis pengetahuan Anda terutama metode parsing di sini.',
       name: 'Nama basis pengetahuan',
@@ -171,14 +181,14 @@ export default {
       languagePlaceholder: 'Silakan masukkan bahasa Anda!',
       permissions: 'Izin',
       embeddingModel: 'Model embedding',
-      chunkTokenNumber: 'Jumlah token potongan',
+      chunkTokenNumber: 'Ukuran potongan yang disarankan',
       chunkTokenNumberMessage: 'Jumlah token potongan diperlukan',
       embeddingModelTip:
-        'Model embedding yang digunakan untuk embedding potongan. Tidak dapat diubah setelah basis pengetahuan memiliki potongan. Anda perlu menghapus semua potongan jika ingin mengubahnya.',
+        'Model embedding default untuk basis pengetahuan. Setelah basis pengetahuan memiliki chunk, saat mengganti model embedding sistem akan mengambil beberapa chunk secara acak untuk pemeriksaan kompatibilitas, meng-encode ulang dengan model embedding baru, dan menghitung kemiripan kosinus antara vektor baru dan vektor lama. Pergantian hanya diizinkan jika rata-rata kemiripan sampel ≥ 0.9. Jika tidak, Anda harus menghapus semua chunk di basis pengetahuan sebelum dapat mengubahnya.',
       permissionsTip:
         "Jika izinnya 'Tim', semua anggota tim dapat memanipulasi basis pengetahuan.",
       chunkTokenNumberTip:
-        'Ini menentukan jumlah token dari sebuah potongan secara kira-kira.',
+        'Ini menentukan jumlah token dari sebuah potongan secara kira-kira. Tidak ada blok baru yang akan dibuat kecuali jika sebuah pembatas ditemukan, bahkan jika ambang batas ini dilampaui.',
       chunkMethod: 'Metode potongan',
       chunkMethodTip: 'Instruksi ada di sebelah kanan.',
       upload: 'Unggah',
@@ -193,15 +203,21 @@ export default {
       methodTitle: 'Deskripsi Metode Pemotongan',
       methodExamples: 'Contoh',
       methodExamplesDescription:
-        'Cuplikan berikut disajikan untuk memudahkan pemahaman.',
+        'Untuk membantu Anda memahami lebih baik, kami menyediakan tangkapan layar terkait sebagai referensi.',
       dialogueExamplesTitle: 'Contoh Dialog',
       methodEmpty:
         'Ini akan menampilkan penjelasan visual dari kategori basis pengetahuan',
+      audio: `<p>Format file yang didukung adalah <b>WAV, MP3, AAC, FLAC, OGG</b> dan format audio umum lainnya.</p>
+<p>Metode ini mentranskripsikan file audio menjadi teks menggunakan model speech-to-text.</p>`,
+      email: `<p>Format file yang didukung adalah <b>EML</b> dan <b>MSG</b>.</p>
+<p>Metode ini mem-parse file email, mengekstrak field header (seperti Dari, Kepada, CC, Subjek, dan Tanggal), isi pesan, dan lampiran.</p>`,
+      knowledgeCompiler: `<p>Pipeline ini mem-parse dan memecah file menjadi chunk, kemudian mengompilasi chunk menjadi unit pengetahuan terstruktur (graf pengetahuan, wiki, RAPTOR, peta pikiran, atau navigasi dataset) melalui komponen Knowledge Compiler.</p>
+<p>Unit pengetahuan yang dikompilasi dikeluarkan sebagai chunk yang digabungkan ke dalam aliran chunk, ideal untuk membangun lapisan pengetahuan yang dapat diambil di atas dokumen yang telah dipecah.</p>`,
       book: `<p>Format file yang didukung adalah <b>DOCX</b>, <b>PDF</b>, <b>TXT</b>.</p><p>
           Karena buku panjang dan tidak semua bagian berguna, jika itu adalah PDF,
           silakan atur <i>rentang halaman</i> untuk setiap buku untuk menghilangkan efek negatif dan menghemat waktu komputasi untuk analisis.</p>`,
       laws: `<p>Format file yang didukung adalah <b>DOCX</b>, <b>PDF</b>, <b>TXT</b>.</p><p>
-          Dokumen hukum memiliki format penulisan yang sangat ketat. Kami menggunakan fitur teks untuk mendeteksi titik pemisah. 
+          Dokumen hukum memiliki format penulisan yang sangat ketat. Kami menggunakan fitur teks untuk mendeteksi titik pemisah.
           </p><p>
           Granularitas potongan konsisten dengan 'ARTIKEL', dan semua teks tingkat atas akan disertakan dalam potongan.
           </p>`,
@@ -209,16 +225,16 @@ export default {
           Kami mengasumsikan manual memiliki struktur bagian hierarkis. Kami menggunakan judul bagian terendah sebagai poros untuk memotong dokumen.
           Jadi, gambar dan tabel dalam bagian yang sama tidak akan dipisahkan, dan ukuran potongan mungkin besar.
           </p>`,
-      naive: `<p>Format file yang didukung adalah <b>DOCX, XLSX, XLS (Excel97~2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML</b>.</p>
+      naive: `<p>Format file yang didukung adalah <b>MD, MDX, DOCX, XLSX, XLS (Excel 97-2003), PPT, PDF, TXT, JPEG, JPG, PNG, TIF, GIF, CSV, JSON, EML, HTML</b>.</p>
           <p>Metode ini menerapkan cara naif untuk memotong file: </p>
           <p>
           <li>Teks berturut-turut akan dipotong menjadi potongan menggunakan model deteksi visual.</li>
           <li>Selanjutnya, potongan berturut-turut ini digabungkan menjadi potongan yang jumlah tokennya tidak lebih dari 'Jumlah token'.</li></p>`,
       paper: `<p>Hanya file <b>PDF</b> yang didukung.</p><p>
           Jika model kami bekerja dengan baik, makalah akan dipotong berdasarkan bagiannya, seperti <i>abstrak, 1.1, 1.2</i>, dll. </p><p>
-          Manfaat dari melakukan ini adalah LLM dapat lebih baik merangkum konten bagian yang relevan dalam makalah, 
-          menghasilkan jawaban yang lebih komprehensif yang membantu pembaca lebih memahami makalah. 
-          Kelemahannya adalah meningkatkan konteks percakapan LLM dan menambah biaya komputasi, 
+          Manfaat dari melakukan ini adalah LLM dapat lebih baik merangkum konten bagian yang relevan dalam makalah,
+          menghasilkan jawaban yang lebih komprehensif yang membantu pembaca lebih memahami makalah.
+          Kelemahannya adalah meningkatkan konteks percakapan LLM dan menambah biaya komputasi,
           jadi selama percakapan, Anda dapat mempertimbangkan untuk mengurangi pengaturan ‘<b>topN</b>’.</p>`,
       presentation: `<p>Format file yang didukung adalah <b>PDF</b>, <b>PPTX</b>.</p><p>
           Setiap halaman akan diperlakukan sebagai potongan. Dan thumbnail setiap halaman akan disimpan.</p><p>
@@ -247,7 +263,7 @@ export default {
           </p><p>
           Resume datang dalam berbagai format, seperti kepribadian seseorang, tetapi kita sering harus mengaturnya menjadi data terstruktur yang memudahkan pencarian.
           </p><p>
-          Alih-alih memotong resume, kami memparsing resume menjadi data terstruktur. Sebagai HR, Anda dapat membuang semua resume yang Anda miliki, 
+          Alih-alih memotong resume, kami memparsing resume menjadi data terstruktur. Sebagai HR, Anda dapat membuang semua resume yang Anda miliki,
           maka Anda dapat mencantumkan semua kandidat yang memenuhi kualifikasi hanya dengan berbicara dengan <i>'assistxsuite'</i>.
           </p>
           `,
@@ -278,40 +294,57 @@ export default {
         </p><p>
         Untuk dokumen, akan diperlakukan sebagai potongan utuh, tidak ada pemisahan sama sekali.
         </p><p>
-        Jika Anda ingin merangkum sesuatu yang membutuhkan semua konteks dari sebuah artikel dan panjang konteks LLM yang dipilih mencakup panjang dokumen, Anda dapat mencoba metode ini.
+        Jika Anda ingin merangkum sesuatu yang membutuhkan semua konteks dari sebuah artikel and panjang konteks LLM yang dipilih mencakup panjang dokumen, Anda dapat mencoba metode ini.
         </p>`,
       knowledgeGraph: `<p>Format file yang didukung adalah <b>DOCX, EXCEL, PPT, IMAGE, PDF, TXT, MD, JSON, EML</b>
-    
-    <p>Setelah file dipotong, digunakan potongan untuk mengekstrak grafik pengetahuan dan peta pikiran dari seluruh dokumen. Metode ini menerapkan cara naif untuk memotong file:
-    Teks berturut-turut akan dipotong menjadi potongan masing-masing yang berjumlah sekitar 512 token.</p>
-    <p>Selanjutnya, potongan akan dikirim ke LLM untuk mengekstrak node dan hubungan dari grafik pengetahuan, dan peta pikiran.</p>
-    
-    Perhatikan jenis entitas yang perlu Anda tentukan.</p>`,
+
+     <p>Setelah file dipotong, digunakan potongan untuk mengekstrak grafik pengetahuan dan peta pikiran dari seluruh dokumen. Metode ini menerapkan cara naif untuk memotong file:
+     Teks berturut-turut akan dipotong menjadi potongan masing-masing yang berjumlah sekitar 512 token.</p>
+     <p>Selanjutnya, potongan akan dikirim ke LLM untuk mengekstrak node dan hubungan dari grafik pengetahuan, dan peta pikiran.</p>
+
+     Perhatikan jenis entitas yang perlu Anda tentukan.</p>`,
       useRaptor: 'Gunakan RAPTOR untuk meningkatkan pengambilan',
       useRaptorTip:
-        'Pemrosesan Abstraktif Rekursif untuk Pengambilan Terorganisasi Pohon, silakan merujuk ke https://huggingface.co/papers/2401.18059',
+        'Aktifkan RAPTOR untuk tugas tanya jawab multi-langkah. Lihat https://ragflow.io/docs/dev/enable_raptor untuk informasi lebih lanjut.',
       prompt: 'Prompt',
-      promptTip: 'Prompt LLM yang digunakan untuk merangkas.',
+      promptTip:
+        'Gunakan prompt sistem untuk menjelaskan tugas untuk LLM, tentukan bagaimana harus merespons, dan menguraikan persyaratan lainnya. Prompt sistem sering digunakan bersama dengan kunci (variabel), yang berfungsi sebagai berbagai input data untuk LLM. Gunakan garis miring `/` atau tombol (x) untuk menampilkan kunci yang digunakan.',
       promptMessage: 'Prompt diperlukan',
       promptText: `Silakan rangkum paragraf berikut. Berhati-hatilah dengan angka, jangan membuat hal-hal yang tidak ada. Paragraf sebagai berikut:
           {cluster_content}
     Di atas adalah konten yang perlu Anda rangkum.`,
       maxToken: 'Token maksimum',
-      maxTokenTip: 'Jumlah token maksimum untuk peringkasan.',
+      maxTokenTip:
+        'Jumlah maksimum token per potongan ringkasan yang dihasilkan.',
       maxTokenMessage: 'Token maksimum diperlukan',
       threshold: 'Ambang batas',
       thresholdTip:
-        'Semakin besar ambang batas, semakin sedikit kluster yang akan ada.',
+        'Dalam RAPTOR, potongan-potongan dikelompokkan berdasarkan kemiripan semantiknya. Parameter Ambang menetapkan tingkat kemiripan minimum yang diperlukan agar potongan-potongan dapat dikelompokkan bersama. Ambang yang lebih tinggi berarti lebih sedikit potongan dalam setiap kelompok, sedangkan ambang yang lebih rendah berarti lebih banyak potongan dalam satu kelompok.',
       thresholdMessage: 'Ambang batas diperlukan',
       maxCluster: 'Kluster maksimum',
-      maxClusterTip: 'Jumlah kluster maksimum.',
+      maxClusterTip: 'Jumlah maksimum klaster yang akan dibuat.',
       maxClusterMessage: 'Kluster maksimum diperlukan',
       randomSeed: 'Benih acak',
       randomSeedMessage: 'Benih acak diperlukan',
       entityTypes: 'Jenis entitas',
+      paddleocrOptions: 'Opsi PaddleOCR',
+      paddleocrApiUrl: 'URL API PaddleOCR',
+      paddleocrApiUrlTip: 'URL endpoint API layanan PaddleOCR',
+      paddleocrApiUrlPlaceholder:
+        'Contoh: https://paddleocr-server.com/layout-parsing',
+      paddleocrAccessToken: 'Token Akses AI Studio',
+      paddleocrAccessTokenTip: 'Token akses untuk API PaddleOCR (opsional)',
+      paddleocrAccessTokenPlaceholder: 'Token AI Studio Anda (opsional)',
+      paddleocrAlgorithm: 'Algoritma PaddleOCR',
+      paddleocrAlgorithmTip:
+        'Algoritma yang digunakan untuk pemrosesan PaddleOCR',
+      paddleocrSelectAlgorithm: 'Pilih algoritma',
+      paddleocrModelNamePlaceholder: 'Contoh: paddleocr-lingkungan-1',
     },
     chunk: {
       chunk: 'Potongan',
+      createChunk: 'Buat potongan',
+      editChunk: 'Edit potongan',
       bulk: 'Massal',
       selectAll: 'Pilih Semua',
       enabledSelected: 'Aktifkan yang Dipilih',
@@ -330,6 +363,9 @@ export default {
       mind: 'Peta pikiran',
     },
     chat: {
+      chatSupport: 'Dukungan Obrolan',
+      replyInstantly: 'Kami biasanya membalas secara instan',
+      typeYourMessage: 'Ketik pesan Anda...',
       newConversation: 'Percakapan baru',
       createAssistant: 'Buat Asisten',
       assistantSetting: 'Pengaturan Asisten',
@@ -341,7 +377,7 @@ export default {
       sendPlaceholder: 'Pesan ke Asisten...',
       chatConfiguration: 'Konfigurasi Obrolan',
       chatConfigurationDescription:
-        'Di sini, dandani asisten khusus untuk basis pengetahuan khusus Anda! 💕',
+        'Atur asisten obrolan untuk dataset yang dipilih (basis pengetahuan) di sini. 💕',
       assistantName: 'Nama Asisten',
       assistantNameMessage: 'Nama asisten diperlukan',
       namePlaceholder: 'mis. Resume Jarvis',
@@ -354,7 +390,8 @@ export default {
       setAnOpenerTip: 'Bagaimana Anda ingin menyambut klien Anda?',
       knowledgeBases: 'Basis Pengetahuan',
       knowledgeBasesMessage: 'Silakan pilih',
-      knowledgeBasesTip: 'Pilih basis pengetahuan yang terkait.',
+      knowledgeBasesTip:
+        'Pilih basis pengetahuan yang terkait. Basis pengetahuan yang kosong tidak akan muncul di daftar dropdown.',
       system: 'Prompt Sistem',
       systemInitialValue: `Anda adalah asisten cerdas. Silakan rangkum konten basis pengetahuan untuk menjawab pertanyaan. Silakan daftar data di basis pengetahuan dan jawab secara detail. Ketika semua konten basis pengetahuan tidak relevan dengan pertanyaan, jawaban Anda harus menyertakan kalimat "Jawaban yang Anda cari tidak ditemukan di basis pengetahuan!" Jawaban perlu mempertimbangkan riwayat obrolan.
           Berikut adalah basis pengetahuan:
@@ -362,14 +399,11 @@ export default {
           Di atas adalah basis pengetahuan.`,
       systemMessage: 'Silakan masukkan!',
       systemTip:
-        'Instruksi yang perlu diikuti LLM saat menjawab pertanyaan, seperti desain karakter, panjang jawaban, dan bahasa jawaban, dll.',
+        'Instruksi yang perlu diikuti LLM saat menjawab pertanyaan, seperti desain karakter, panjang jawaban, and bahasa jawaban, dll. Jika model Anda memiliki dukungan bawaan untuk penalaran, Anda dapat menambahkan //no_thinking ke prompt untuk menghentikan penalaran.',
       topN: 'Top N',
       topNTip: `Tidak semua potongan yang skor kesamaannya di atas 'ambang kesamaan' akan diberikan ke LLM. LLM hanya dapat melihat potongan 'Top N' ini.`,
       variable: 'Variabel',
-      variableTip: `Jika Anda menggunakan API dialog, variabel mungkin membantu Anda berbicara dengan klien Anda dengan strategi yang berbeda. 
-          Variabel digunakan untuk mengisi bagian 'Prompt Sistem' dalam prompt untuk memberikan petunjuk kepada LLM.
-          'knowledge' adalah variabel yang sangat khusus yang akan diisi dengan potongan yang diambil.
-          Semua variabel dalam 'Prompt Sistem' harus diberi kurung kurawal.`,
+      variableTip: `Digunakan bersama dengan API manajemen asisten obrolan RAGFlow, variabel dapat membantu mengembangkan strategi prompt sistem yang lebih fleksibel. Variabel yang didefinisikan akan digunakan oleh 'Prompt Sistem' sebagai bagian dari prompt untuk LLM. {knowledge} adalah variabel khusus yang dicadangkan, mewakili bagian-bagian yang diperoleh dari basis pengetahuan yang ditentukan, dan semua variabel harus dikelilingi oleh kurung kurawal {} dalam 'Prompt Sistem'. Lihat https://ragflow.io/docs/chat_configuration#system-prompt untuk detail lebih lanjut.`,
       add: 'Tambah',
       key: 'Kunci',
       optional: 'Opsional',
@@ -381,6 +415,7 @@ export default {
       improvise: 'Improvisasi',
       precise: 'Tepat',
       balance: 'Seimbang',
+      custom: 'Custom',
       freedomTip: `'Tepat' berarti LLM akan berhati-hati dan menjawab pertanyaan Anda dengan hati-hati. 'Improvisasi' berarti Anda ingin LLM berbicara banyak dan bebas. 'Seimbang' adalah antara berhati-hati dan bebas.`,
       temperature: 'Temperatur',
       temperatureMessage: 'Temperatur diperlukan',
@@ -400,8 +435,7 @@ export default {
         'Mirip dengan penalti kehadiran, ini mengurangi kecenderungan model untuk mengulangi kata yang sama secara sering.',
       maxTokens: 'Token Maksimum',
       maxTokensMessage: 'Token Maksimum diperlukan',
-      maxTokensTip:
-        'Ini menetapkan panjang maksimum keluaran model, diukur dalam jumlah token (kata atau potongan kata).',
+      maxTokensTip: `Ukuran konteks maksimum model; nilai yang tidak valid atau salah akan menyebabkan kesalahan. Default 512.`,
       maxTokensInvalidMessage:
         'Silakan masukkan angka yang valid untuk Max Tokens.',
       maxTokensMinMessage: 'Max Tokens tidak boleh kurang dari 0.',
@@ -451,14 +485,20 @@ export default {
         'Dalam percakapan multi-putaran, kueri ke basis pengetahuan dioptimalkan. Model besar akan dipanggil untuk mengonsumsi token tambahan.',
       languageSelectionTip: 'Pilih bahasa yang digunakan dalam percakapan.',
       description: 'Description of assistant',
+      showChunkMetadata: 'Tampilkan metadata chunk',
+      showChunkMetadataTip:
+        'Tampilkan metadata dokumen (mis. judul, nomor halaman, tanggal unggah) bersama potongan teks yang diambil',
+      metadataFields: 'Bidang metadata',
+      metadataFieldsTip:
+        'Pilih bidang metadata yang akan ditampilkan untuk setiap chunk',
     },
     setting: {
       profile: 'Profil',
+      avatar: 'Avatar',
       profileDescription: 'Perbarui foto dan detail pribadi Anda di sini.',
       maxTokens: 'Token Maksimum',
       maxTokensMessage: 'Token Maksimum diperlukan',
-      maxTokensTip:
-        'Ini menetapkan panjang maksimum keluaran model, diukur dalam jumlah token (kata atau potongan kata).',
+      maxTokensTip: `Ukuran konteks maksimum model; nilai yang tidak valid atau salah akan menyebabkan kesalahan. Default 512.`,
       maxTokensInvalidMessage:
         'Silakan masukkan angka yang valid untuk Max Tokens.',
       maxTokensMinMessage: 'Max Tokens tidak boleh kurang dari 0.',
@@ -505,28 +545,39 @@ export default {
       apiKeyTip:
         'Kunci API dapat diperoleh dengan mendaftar ke penyedia LLM yang sesuai.',
       showMoreModels: 'Tampilkan lebih banyak model',
-      baseUrl: 'Base-Url',
+      hideModels: 'Sembunyikan model',
+      baseUrl: 'Base URL',
       baseUrlTip:
-        'Jika kunci API Anda berasal dari OpenAI, abaikan saja. Penyedia perantara lainnya akan memberikan base url ini dengan kunci API.',
+        'Jika kunci API Anda berasal dari OpenAI, abaikan saja. Penyedia perantara lainnya akan memberikan Base URL ini dengan kunci API.',
+      tongyiBaseUrlTip:
+        'Untuk pengguna Tiongkok, tidak perlu diisi atau gunakan https://dashscope.aliyuncs.com/compatible-mode/v1. Untuk pengguna internasional, gunakan https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+      siliconBaseUrlTip:
+        'Untuk pengguna Tiongkok, tidak perlu diisi atau gunakan https://api.siliconflow.cn/v1. Untuk pengguna internasional, gunakan https://api.siliconflow.com/v1',
+      tongyiBaseUrlPlaceholder:
+        '(Hanya untuk pengguna internasional, silakan lihat tip)',
+      minimaxBaseUrlTip:
+        'Hanya untuk pengguna internasional: gunakan https://api.minimax.io/v1.',
+      minimaxBaseUrlPlaceholder:
+        '(Hanya untuk pengguna internasional, isi https://api.minimax.io/v1)',
       modify: 'Ubah',
-      systemModelSettings: 'Pengaturan Model Sistem',
+      systemModelSettings: 'Tetapkan model default',
       chatModel: 'Model Obrolan',
       chatModelTip:
         'Model LLM obrolan default yang akan digunakan semua basis pengetahuan baru yang dibuat.',
       embeddingModel: 'Model Embedding',
       embeddingModelTip:
-        'Model embedding default yang akan digunakan semua basis pengetahuan baru yang dibuat.',
+        'Model embedding default untuk setiap basis pengetahuan baru yang dibuat. Jika Anda tidak dapat menemukan model embedding dari dropdown, periksa apakah Anda menggunakan RAGFlow slim edition (yang tidak menyertakan model embedding) atau periksa https://ragflow.io/docs/dev/supported_models untuk melihat apakah penyedia model Anda mendukung model ini.',
       img2txtModel: 'Model Img2txt',
       img2txtModelTip:
-        'Model multi-modul default yang akan digunakan semua basis pengetahuan baru yang dibuat. Ini dapat menggambarkan gambar atau video.',
+        'Model img2txt default untuk setiap basis pengetahuan yang baru dibuat. Model ini menggambarkan gambar atau video. Jika Anda tidak dapat menemukan model dari menu dropdown, periksa https://ragflow.io/docs/dev/supported_models untuk melihat apakah penyedia model Anda mendukung model ini.',
       sequence2txtModel: 'Model Speech2txt',
       sequence2txtModelTip:
-        'Model ASR default yang akan digunakan semua basis pengetahuan baru yang dibuat. Gunakan model ini untuk menerjemahkan suara ke teks yang sesuai.',
+        'Model ASR default yang akan digunakan semua basis pengetahuan baru yang dibuat. Gunakan model ini untuk menerjemahkan suara ke teks yang sesuai. Jika Anda tidak dapat menemukan model dari menu dropdown, periksa https://ragflow.io/docs/dev/supported_models untuk melihat apakah penyedia model Anda mendukung model ini.',
       rerankModel: 'Model Rerank',
-      rerankModelTip: `Model rerank default digunakan untuk mererank potongan yang diambil oleh pertanyaan pengguna.`,
+      rerankModelTip: `Model rerank default untuk reranking potongan teks. Jika Anda tidak dapat menemukan model dari dropdown, periksa https://ragflow.io/docs/dev/supported_models untuk melihat apakah penyedia model Anda mendukung model ini.`,
       ttsModel: 'Model TTS',
       ttsModelTip:
-        'Model TTS default akan digunakan untuk menghasilkan ucapan selama percakapan atas permintaan.',
+        'Model text-to-speech default. Jika Anda tidak dapat menemukan model dari dropdown, periksa https://ragflow.io/docs/dev/supported_models untuk melihat apakah penyedia model Anda mendukung model ini.',
       workspace: 'Ruang Kerja',
       upgrade: 'Tingkatkan',
       addLlmTitle: 'Tambahkan LLM',
@@ -536,57 +587,93 @@ export default {
       modelNameMessage: 'Silakan masukkan nama model Anda!',
       modelType: 'Jenis Model',
       modelTypeMessage: 'Silakan masukkan jenis model Anda!',
-      addLlmBaseUrl: 'Base url',
-      baseUrlNameMessage: 'Silakan masukkan base url Anda!',
+      addLlmBaseUrl: 'Base URL',
+      baseUrlNameMessage: 'Silakan masukkan Base URL Anda',
+      paddleocr: {
+        apiUrl: 'URL API PaddleOCR',
+        apiUrlPlaceholder:
+          'Contoh: https://paddleocr-server.com/layout-parsing',
+        accessToken: 'Token Akses AI Studio',
+        accessTokenPlaceholder: 'Token AI Studio Anda (opsional)',
+        algorithm: 'Algoritma PaddleOCR',
+        selectAlgorithm: 'Pilih algoritma',
+        modelNamePlaceholder: 'Contoh: paddleocr-from-env-1',
+        modelNameRequired: 'Nama model wajib diisi',
+        apiUrlRequired: 'URL API PaddleOCR wajib diisi',
+      },
       vision: 'Apakah mendukung Vision?',
       ollamaLink: 'Cara mengintegrasikan {{name}}',
       FishAudioLink: 'Cara menggunakan FishAudio',
       TencentCloudLink: 'Cara menggunakan TencentCloud ASR',
       volcModelNameMessage: 'Silakan masukkan nama model Anda!',
-      addEndpointID: 'EndpointID dari model',
-      endpointIDMessage: 'Silakan masukkan EndpointID dari model',
+      addEndpointID: 'Model ID',
+      endpointIDMessage: 'Silakan masukkan Model ID dari model',
       addArkApiKey: 'VOLC ARK_API_KEY',
       ArkApiKeyMessage: 'Silakan masukkan ARK_API_KEY Anda',
-      bedrockModelNameMessage: 'Silakan masukkan nama model Anda!',
+      bedrockModelNameMessage: 'Silakan masukkan nama model Anda',
       addBedrockEngineAK: 'ACCESS KEY',
       bedrockAKMessage: 'Silakan masukkan ACCESS KEY Anda',
       addBedrockSK: 'SECRET KEY',
       bedrockSKMessage: 'Silakan masukkan SECRET KEY Anda',
       bedrockRegion: 'Wilayah AWS',
-      bedrockRegionMessage: 'Silakan pilih!',
+      bedrockRegionMessage: 'Silakan pilih',
+      'us-east-2': 'US East (Ohio)',
       'us-east-1': 'US East (N. Virginia)',
+      'us-west-1': 'US West (N. California)',
       'us-west-2': 'US West (Oregon)',
+      'af-south-1': 'Africa (Cape Town)',
+      'ap-east-1': 'Asia Pacific (Hong Kong)',
+      'ap-south-2': 'Asia Pacific (Hyderabad)',
+      'ap-southeast-3': 'Asia Pacific (Jakarta)',
+      'ap-southeast-5': 'Asia Pacific (Malaysia)',
+      'ap-southeast-4': 'Asia Pacific (Melbourne)',
+      'ap-south-1': 'Asia Pacific (Mumbai)',
+      'ap-northeast-3': 'Asia Pacific (Osaka)',
+      'ap-northeast-2': 'Asia Pacific (Seoul)',
       'ap-southeast-1': 'Asia Pacific (Singapore)',
-      'ap-northeast-1': 'Asia Pacific (Tokyo)',
-      'eu-central-1': 'Europe (Frankfurt)',
-      'us-gov-west-1': 'AWS GovCloud (US-West)',
       'ap-southeast-2': 'Asia Pacific (Sydney)',
-      addHunyuanSID: 'Hunyuan Secret ID',
-      HunyuanSIDMessage: 'Silakan masukkan Secret ID Anda',
-      addHunyuanSK: 'Hunyuan Secret Key',
-      HunyuanSKMessage: 'Silakan masukkan Secret Key Anda',
+      'ap-east-2': 'Asia Pacific (Taipei)',
+      'ap-southeast-7': 'Asia Pacific (Thailand)',
+      'ap-northeast-1': 'Asia Pacific (Tokyo)',
+      'ca-central-1': 'Canada (Central)',
+      'ca-west-1': 'Canada West (Calgary)',
+      'eu-central-1': 'Europe (Frankfurt)',
+      'eu-west-1': 'Europe (Ireland)',
+      'eu-west-2': 'Europe (London)',
+      'eu-south-1': 'Europe (Milan)',
+      'eu-west-3': 'Europe (Paris)',
+      'eu-south-2': 'Europe (Spain)',
+      'eu-north-1': 'Europe (Stockholm)',
+      'eu-central-2': 'Europe (Zurich)',
+      'il-central-1': 'Israel (Tel Aviv)',
+      'mx-central-1': 'Mexico (Central)',
+      'me-south-1': 'Middle East (Bahrain)',
+      'me-central-1': 'Middle East (UAE)',
+      'sa-east-1': 'South America (São Paulo)',
+      'us-gov-east-1': 'AWS GovCloud (US-East)',
+      'us-gov-west-1': 'AWS GovCloud (US-West)',
       addTencentCloudSID: 'TencentCloud Secret ID',
       TencentCloudSIDMessage: 'Silakan masukkan Secret ID Anda',
-      addTencentCloudSK: 'TencentCloud Secret Key',
-      TencentCloudSKMessage: 'Silakan masukkan Secret Key Anda',
+      addTencentCloudSK: 'TencentCloud SECRET KEY',
+      TencentCloudSKMessage: 'Silakan masukkan SECRET KEY Anda',
       SparkModelNameMessage: 'Silakan pilih model Spark',
       addSparkAPIPassword: 'Spark APIPassword',
       SparkAPIPasswordMessage: 'silakan masukkan APIPassword Anda',
       addSparkAPPID: 'Spark APPID',
       SparkAPPIDMessage: 'silakan masukkan APPID Anda',
-      addSparkAPISecret: 'Spark APISecret',
-      SparkAPISecretMessage: 'silakan masukkan APISecret Anda',
+      addSparkAPISecret: 'Spark API SECRET',
+      SparkAPISecretMessage: 'silakan masukkan API SECRET Anda',
       addSparkAPIKey: 'Spark APIKey',
       SparkAPIKeyMessage: 'silakan masukkan APIKey Anda',
       yiyanModelNameMessage: 'Silakan masukkan nama model',
-      addyiyanAK: 'yiyan API KEY',
-      yiyanAKMessage: 'Silakan masukkan API KEY Anda',
-      addyiyanSK: 'yiyan Secret KEY',
-      yiyanSKMessage: 'Silakan masukkan Secret KEY Anda',
+      addyiyanAK: 'yiyan API Key',
+      yiyanAKMessage: 'Silakan masukkan API Key Anda',
+      addyiyanSK: 'yiyan SECRET KEY',
+      yiyanSKMessage: 'Silakan masukkan SECRET KEY Anda',
       FishAudioModelNameMessage: 'Silakan beri nama model sintesis ucapan Anda',
-      addFishAudioAK: 'Fish Audio API KEY',
-      addFishAudioAKMessage: 'Silakan masukkan API KEY Anda',
-      addFishAudioRefID: 'FishAudio Refrence ID',
+      addFishAudioAK: 'Fish Audio API Key',
+      addFishAudioAKMessage: 'Silakan masukkan API Key Anda',
+      addFishAudioRefID: 'FishAudio Reference ID',
       addFishAudioRefIDMessage:
         'Silakan masukkan Reference ID (biarkan kosong untuk menggunakan model default).',
       GoogleModelIDMessage: 'Silakan masukkan ID model Anda!',
@@ -599,9 +686,24 @@ export default {
       addGoogleRegion: 'Wilayah Google Cloud',
       GoogleRegionMessage: 'Silakan masukkan Wilayah Google Cloud',
       modelProvidersWarn:
-        'Silakan tambahkan model embedding dan LLM di <b>Pengaturan > Penyedia Model</b> terlebih dahulu.',
+        'Silakan tambahkan model embedding dan LLM di <b>Pengaturan > Penyedia Model</b> terlebih dahulu. Kemudian, atur keduanya di "Atur model default".',
       apiVersion: 'Versi API',
       apiVersionMessage: 'Silakan masukkan versi API',
+      add: 'Tambah',
+      updateDate: 'Tanggal diperbarui',
+      role: 'Peran',
+      invite: 'Undang',
+      agree: 'Setuju',
+      refuse: 'Tolak',
+      teamMembers: 'Anggota tim',
+      joinedTeams: 'Tim yang diikuti',
+      sureDelete: 'Apakah Anda yakin ingin menghapus anggota ini?',
+      quit: 'Keluar',
+      sureQuit: 'Apakah Anda yakin ingin keluar dari tim yang Anda ikuti?',
+      modelsToBeAddedTooltip:
+        'Jika penyedia model Anda tidak tercantum tetapi mengklaim kompatibel dengan OpenAI, pilih kartu OpenAI-API-compatible untuk menambahkan model yang relevan.',
+      dingtalkAITableDescription:
+        'Hubungkan ke Dingtalk AI Table dan sinkronkan catatan dari tabel yang ditentukan.',
     },
     message: {
       registered: 'Terdaftar!',
@@ -652,7 +754,7 @@ export default {
       directory: 'Direktori',
       uploadTitle: 'Klik atau seret file ke area ini untuk mengunggah',
       uploadDescription:
-        'RAGFlow mendukung pengunggahan file secara tunggal atau batch. Untuk RAGFlow yang dideploy secara lokal: batas ukuran total file per unggahan adalah 1GB, dengan batas unggahan batch sebanyak 32 file. Tidak ada batasan jumlah total file per akun. Untuk demo.ragflow.io: batas ukuran total file per unggahan adalah 10MB, dengan setiap file tidak melebihi 10MB dan maksimum 128 file per akun.',
+        'RAGFlow mendukung pengunggahan file secara tunggal atau batch. Untuk RAGFlow yang dideploy secara lokal: batas ukuran total file per unggahan adalah 1GB, dengan batas unggahan batch sebanyak 32 file. Tidak ada batasan jumlah total file per akun. Untuk cloud.ragflow.io: batas ukuran total file per unggahan adalah 10MB, dengan setiap file tidak melebihi 10MB dan maksimum 128 file per akun.',
       local: 'Unggahan lokal',
       s3: 'Unggahan S3',
       preview: 'Pratinjau',
@@ -725,13 +827,35 @@ export default {
       duckDuckGo: 'DuckDuckGo',
       duckDuckGoDescription:
         'Komponen yang mengambil hasil pencarian dari duckduckgo.com, dengan TopN menentukan jumlah hasil pencarian. Ini melengkapi basis pengetahuan yang ada.',
+      searXNG: 'SearXNG',
+      searXNGDescription:
+        'Komponen yang melakukan pencarian menggunakan URL instance SearXNG yang Anda berikan. Spesifikasikan TopN dan URL instance.',
+      docGenerator: 'Pembuat Dokumen',
+      docGeneratorDescription: `Menghasilkan file dari konten Markdown.`,
+      subtitle: 'Subjudul',
+      logoImage: 'Gambar Logo',
+      logoPosition: 'Posisi Logo',
+      logoWidth: 'Lebar Logo',
+      logoHeight: 'Tinggi Logo',
+      fontFamily: 'Keluarga Font',
+      fontSize: 'Ukuran Font',
+      titleFontSize: 'Ukuran Font Judul',
+      pageSize: 'Ukuran Halaman',
+      orientation: 'Orientasi',
+      marginTop: 'Margin Atas',
+      marginBottom: 'Margin Bawah',
+      filename: 'Nama File',
+      outputDirectory: 'Direktori Output',
+      addPageNumbers: 'Tambahkan Nomor Halaman',
+      addTimestamp: 'Tambahkan Timestamp',
+      watermarkText: 'Teks Watermark',
       channel: 'Saluran',
       channelTip: `Lakukan pencarian teks atau pencarian berita pada input komponen`,
       text: 'Teks',
       news: 'Berita',
       messageHistoryWindowSize: 'Ukuran jendela pesan',
       messageHistoryWindowSizeTip:
-        'Ukuran jendela riwayat percakapan yang perlu dilihat oleh LLM. Semakin besar semakin baik. Tetapi berhati-hatilah dengan panjang konten maksimum dari LLM.',
+        'Ukuran jendela riwayat percakapan yang terlihat oleh LLM. Semakin besar semakin baik, tetapi perhatikan batas maksimum token LLM.',
       wikipedia: 'Wikipedia',
       pubMed: 'PubMed',
       email: 'Email',
@@ -817,7 +941,7 @@ export default {
         dan: 'Denmark',
         fin: 'Finlandia',
         cs: 'Ceko',
-        rom: 'Rumania',
+        rom: 'Rumano',
         slo: 'Slovenia',
         swe: 'Swedia',
         hu: 'Hungaria',
@@ -934,7 +1058,7 @@ export default {
       },
       akShare: 'AkShare',
       akShareDescription:
-        'Komponen ini dapat digunakan untuk mendapatkan ringkasan berita keuangan dari situs web keuangan utama, membantu penelitian industri dan kuantitatif.',
+        'Este componente se puede usar para obtener información de noticias para la acción correspondiente del sitio web de Eastmoney.',
       yahooFinance: 'YahooFinance',
       yahooFinanceDescription:
         'Komponen ini menanyakan informasi tentang perusahaan berdasarkan simbol ticker yang diberikan.',
@@ -989,14 +1113,14 @@ export default {
       },
       concentrator: 'Konsentrator',
       concentratorDescription:
-        'Komponen yang menerima output dari komponen hulu dan meneruskannya sebagai input ke komponen hilir.',
+        'Un componente que recibe la salida del componente anterior y la pasa como entrada a los componentes posteriores.',
       tuShare: 'TuShare',
       tuShareDescription:
-        'Komponen ini dapat digunakan untuk mendapatkan ringkasan berita keuangan dari situs web keuangan utama, membantu penelitian industri dan kuantitatif.',
+        'Este componente se puede usar para obtener breves noticias financieras de sitios web financieros de referencia, lo que ayuda a la investigación industrial y cuantitativa.',
       tuShareSrcOptions: {
         sina: 'Sina',
         wallstreetcn: 'wallstreetcn',
-        '10jqka': 'Flush langsung',
+        '10jqka': 'Flush recto',
         eastmoney: 'Eastmoney',
         yuncaijing: 'YUNCAIJING',
         fenghuang: 'FENGHUANG',
@@ -1010,14 +1134,42 @@ export default {
       note: 'Catatan',
       noteDescription: 'Catatan',
       notePlaceholder: 'Silakan masukkan catatan',
+      runningHintText: 'sedang berjalan...🕞',
+
+      invoke: 'Permintaan HTTP',
+      invokeDescription:
+        'Komponen yang mampu memanggil layanan remote, menggunakan output komponen lain atau konstanta sebagai input.',
+      url: 'Url',
+      method: 'Metode',
+      timeout: 'Waktu habis',
+      headers: 'Header',
+      cleanHtml: 'Bersihkan HTML',
+      cleanHtmlTip:
+        'Jika respons diformat HTML dan hanya ingin konten utama, aktifkan opsi ini.',
+      invalidUrl:
+        'Harus berupa URL yang valid atau URL dengan placeholder variabel dalam format {nama_variabel} atau {komponen@variabel}',
+
+      prompt: 'Prompt',
+      promptTip:
+        'Gunakan prompt sistem untuk menjelaskan tugas untuk LLM, tentukan bagaimana harus merespons, dan menguraikan persyaratan lainnya. Prompt sistem sering digunakan bersama dengan kunci (variabel), yang berfungsi sebagai berbagai input data untuk LLM. Gunakan garis miring `/` atau tombol (x) untuk menampilkan kunci yang digunakan.',
+      promptMessage: 'Prompt diperlukan',
+      tags: 'Tag',
+      canvasCategory: 'Kategori kanvas',
+      created: 'Dibuat',
+      id: 'ID',
+      logTitle: 'Judul',
     },
     footer: {
       profile: 'Semua hak dilindungi @ React',
     },
-    layout: {
-      file: 'file',
-      knowledge: 'pengetahuan',
-      chat: 'obrolan',
+    language: {
+      english: 'Inggris',
+      chinese: 'Cina',
+      russian: 'Rusia',
+      bulgarian: 'Bulgaria',
+      arabic: 'Arab',
+      turkish: 'Turki',
+      korean: 'Korea',
     },
   },
 };

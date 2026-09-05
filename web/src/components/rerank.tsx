@@ -1,10 +1,24 @@
-import { LlmModelType } from '@/constants/knowledge';
+/*
+ *  Copyright 2026 The InfiniFlow Authors. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+import { ModelTreeSelect } from '@/components/model-tree-select';
 import { useTranslate } from '@/hooks/common-hooks';
-import { useSelectLlmOptionsByModelType } from '@/hooks/llm-hooks';
-import { Select as AntSelect, Form, message, Slider } from 'antd';
-import { useCallback } from 'react';
+import { prefixName } from '@/utils/form';
 import { useFormContext } from 'react-hook-form';
-import { SingleFormSlider } from './ui/dual-range-slider';
+import { z } from 'zod';
 import {
   FormControl,
   FormField,
@@ -12,128 +26,40 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 
-type FieldType = {
-  rerank_id?: string;
-  top_k?: number;
-};
+const DefaultRerankId = 'rerank_id';
 
-export const RerankItem = () => {
-  const { t } = useTranslate('knowledgeDetails');
-  const allOptions = useSelectLlmOptionsByModelType();
-  const [messageApi, contextHolder] = message.useMessage();
+interface RerankFormFieldProps {
+  name?: string;
+  ownerTenantId?: string;
+  required?: boolean;
+}
 
-  const handleChange = useCallback(
-    (val: string) => {
-      if (val) {
-        messageApi.open({
-          type: 'warning',
-          content: t('reRankModelWaring'),
-        });
-      }
-    },
-    [messageApi, t],
-  );
-
-  return (
-    <>
-      {contextHolder}
-      <Form.Item
-        label={t('rerankModel')}
-        name={'rerank_id'}
-        tooltip={t('rerankTip')}
-      >
-        <AntSelect
-          options={allOptions[LlmModelType.Rerank]}
-          allowClear
-          placeholder={t('rerankPlaceholder')}
-          onChange={handleChange}
-        />
-      </Form.Item>
-    </>
-  );
-};
-
-const Rerank = () => {
-  const { t } = useTranslate('knowledgeDetails');
-
-  return (
-    <>
-      <RerankItem></RerankItem>
-      <Form.Item noStyle dependencies={['rerank_id']}>
-        {({ getFieldValue }) => {
-          const rerankId = getFieldValue('rerank_id');
-          return (
-            rerankId && (
-              <Form.Item<FieldType>
-                label={t('topK')}
-                name={'top_k'}
-                initialValue={1024}
-                tooltip={t('topKTip')}
-              >
-                <Slider max={2048} min={1} />
-              </Form.Item>
-            )
-          );
-        }}
-      </Form.Item>
-    </>
-  );
-};
-
-export default Rerank;
-
-const RerankId = 'rerank_id';
-
-function RerankFormField() {
+function RerankFormField({
+  name = DefaultRerankId,
+  ownerTenantId,
+  required = false,
+}: RerankFormFieldProps) {
   const form = useFormContext();
   const { t } = useTranslate('knowledgeDetails');
-  const allOptions = useSelectLlmOptionsByModelType();
-  const options = allOptions[LlmModelType.Rerank];
 
   return (
     <FormField
       control={form.control}
-      name={RerankId}
+      name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{t('rerankModel')}</FormLabel>
+          <FormLabel tooltip={t('rerankTip')} required={required}>
+            {t('rerankModel')}
+          </FormLabel>
           <FormControl>
-            <Select onValueChange={field.onChange} {...field}>
-              <SelectTrigger
-                value={field.value}
-                onReset={() => {
-                  form.resetField(RerankId);
-                }}
-              >
-                <SelectValue placeholder={t('rerankPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {options.map((x) => (
-                  <SelectGroup key={x.label}>
-                    <SelectLabel>{x.label}</SelectLabel>
-                    {x.options.map((y) => (
-                      <SelectItem
-                        value={y.value}
-                        key={y.value}
-                        disabled={y.disabled}
-                      >
-                        {y.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            <ModelTreeSelect
+              modelTypes={['rerank']}
+              allowClear
+              placeholder={t('rerankPlaceholder')}
+              ownerTenantId={ownerTenantId}
+              {...field}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -142,33 +68,28 @@ function RerankFormField() {
   );
 }
 
-export function RerankFormFields() {
-  const { control, watch } = useFormContext();
-  const { t } = useTranslate('knowledgeDetails');
-  const rerankId = watch(RerankId);
+export const rerankFormSchema = {
+  [DefaultRerankId]: z.string().optional(),
+};
+
+interface RerankFormFieldsProps {
+  prefix?: string;
+  ownerTenantId?: string;
+  required?: boolean;
+}
+
+export function RerankFormFields({
+  prefix = '',
+  ownerTenantId,
+  required = false,
+}: RerankFormFieldsProps) {
+  const rerankIdName = prefixName(prefix, DefaultRerankId);
 
   return (
-    <>
-      <RerankFormField></RerankFormField>
-      {rerankId && (
-        <FormField
-          control={control}
-          name={'top_k'}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('topK')}</FormLabel>
-              <FormControl>
-                <SingleFormSlider
-                  {...field}
-                  max={2048}
-                  min={1}
-                ></SingleFormSlider>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-    </>
+    <RerankFormField
+      name={rerankIdName}
+      ownerTenantId={ownerTenantId}
+      required={required}
+    ></RerankFormField>
   );
 }

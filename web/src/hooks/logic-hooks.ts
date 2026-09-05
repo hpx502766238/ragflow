@@ -1,18 +1,45 @@
+/*
+ *  Copyright 2026 The InfiniFlow Authors. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+import { FilterValue } from '@/components/list-filter-bar/interface';
+import { hasActiveFilter } from '@/components/list-filter-bar/utils';
+import message from '@/components/ui/message';
 import { Authorization } from '@/constants/authorization';
 import { MessageType } from '@/constants/chat';
-import { LanguageTranslationMap } from '@/constants/common';
+import { FormInstance } from '@/interfaces/antd-compat';
+import { Pagination } from '@/interfaces/common';
 import { ResponseType } from '@/interfaces/database/base';
-import { IAnswer, Message } from '@/interfaces/database/chat';
-import { IKnowledgeFile } from '@/interfaces/database/knowledge';
-import { IClientConversation, IMessage } from '@/pages/chat/interface';
+import {
+  IAnswer,
+  IClientConversation,
+  IMessage,
+  Message,
+} from '@/interfaces/database/chat';
+import { IKnowledgeFile } from '@/interfaces/database/dataset';
+import { changeLanguageAsync } from '@/locales/config';
 import api from '@/utils/api';
 import { getAuthorization } from '@/utils/authorization-util';
 import { buildMessageUuid } from '@/utils/chat';
-import { PaginationProps, message } from 'antd';
-import { FormInstance } from 'antd/lib';
+import {
+  consumeListDeletionMarker,
+  discardListDeletionMarker,
+} from '@/utils/list-deletion-util';
 import axios from 'axios';
 import { EventSourceParserStream } from 'eventsource-parser/stream';
-import { omit } from 'lodash';
+import { has, isEmpty, omit } from 'lodash';
 import {
   ChangeEventHandler,
   useCallback,
@@ -21,11 +48,17 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useTranslation } from 'react-i18next';
-import { v4 as uuid } from 'uuid';
 import { useTranslate } from './common-hooks';
 import { useSetPaginationParams } from './route-hook';
-import { useFetchTenantInfo, useSaveSetting } from './user-setting-hooks';
+import { useSaveSetting } from './use-user-setting-request';
+
+export function usePrevious<T>(value: T) {
+  const ref = useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref.current;
+}
 
 export const useSetSelectedRecord = <T = IKnowledgeFile>() => {
   const [currentRecord, setCurrentRecord] = useState<T>({} as T);
@@ -37,30 +70,16 @@ export const useSetSelectedRecord = <T = IKnowledgeFile>() => {
   return { currentRecord, setRecord };
 };
 
-export const useHandleSearchChange = () => {
-  const [searchString, setSearchString] = useState('');
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value;
-      setSearchString(value);
-    },
-    [],
-  );
-
-  return { handleInputChange, searchString };
-};
-
 export const useChangeLanguage = () => {
-  const { i18n } = useTranslation();
   const { saveSetting } = useSaveSetting();
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(
-      LanguageTranslationMap[lng as keyof typeof LanguageTranslationMap],
-    );
-    saveSetting({ language: lng });
-  };
+  const changeLanguage = useCallback(
+    (lng: string) => {
+      changeLanguageAsync(lng);
+      saveSetting({ language: lng });
+    },
+    [saveSetting],
+  );
 
   return changeLanguage;
 };
@@ -73,21 +92,28 @@ export const useGetPaginationWithRouter = () => {
     size: pageSize,
   } = useSetPaginationParams();
 
-  const onPageChange: PaginationProps['onChange'] = useCallback(
-    (pageNumber: number, pageSize: number) => {
-      setPaginationParams(pageNumber, pageSize);
+  const onPageChange: Pagination['onChange'] = useCallback(
+    (pageNumber: number, size?: number) => {
+      if (size !== pageSize) {
+        setPaginationParams(1, size);
+      } else {
+        setPaginationParams(pageNumber, size);
+      }
     },
-    [setPaginationParams],
+    [setPaginationParams, pageSize],
   );
 
   const setCurrentPagination = useCallback(
     (pagination: { page: number; pageSize?: number }) => {
+      if (pagination.pageSize !== pageSize) {
+        pagination.page = 1; // Reset to first page if pageSize changes
+      }
       setPaginationParams(pagination.page, pagination.pageSize);
     },
-    [setPaginationParams],
+    [setPaginationParams, pageSize],
   );
 
-  const pagination: PaginationProps = useMemo(() => {
+  const pagination: Pagination = useMemo(() => {
     return {
       showQuickJumper: true,
       total: 0,
@@ -96,7 +122,7 @@ export const useGetPaginationWithRouter = () => {
       pageSize: pageSize,
       pageSizeOptions: [1, 2, 10, 20, 50, 100],
       onChange: onPageChange,
-      showTotal: (total) => `${t('total')} ${total}`,
+      showTotal: (total: number) => `${t('total')} ${total}`,
     };
   }, [t, onPageChange, page, pageSize]);
 
@@ -106,18 +132,98 @@ export const useGetPaginationWithRouter = () => {
   };
 };
 
-export const useGetPagination = () => {
-  const [pagination, setPagination] = useState({ page: 1, pageSize: 10 });
+// When the current page becomes empty (e.g. after deleting the last card on
+// the last page), navigate back to the previous page automatically. When the
+// empty page was caused by a deletion (recorded via markListItemsDeleted) and
+// a search or filter is active, clear them and jump to the first page of the
+// unfiltered list instead — the filtered result set no longer exists, so the
+// previous page of it would be meaningless.
+export const useGoToPreviousPageOnEmpty = (
+  listLength: number | undefined,
+  loading: boolean = false,
+  options?: {
+    deletionKey?: string;
+    searchString?: string;
+    setSearchString?: (value: string) => void;
+    filterValue?: FilterValue;
+    setFilterValue?: (value: FilterValue) => void;
+  },
+) => {
+  const { pagination, setPagination } = useGetPaginationWithRouter();
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  useEffect(() => {
+    if (loading || listLength !== 0 || pagination.current <= 1) {
+      return;
+    }
+
+    const {
+      deletionKey,
+      searchString,
+      setSearchString,
+      filterValue,
+      setFilterValue,
+    } = optionsRef.current ?? {};
+    const clearedByDeletion =
+      deletionKey &&
+      (Boolean(searchString) || hasActiveFilter(filterValue)) &&
+      consumeListDeletionMarker(deletionKey);
+
+    if (clearedByDeletion) {
+      setSearchString?.('');
+      setFilterValue?.({});
+      setPagination({ page: 1, pageSize: pagination.pageSize });
+    } else {
+      if (deletionKey) {
+        // The empty page was not caused by a deletion (e.g. a search with no
+        // matches); drop any stale marker so it cannot fire later.
+        discardListDeletionMarker(deletionKey);
+      }
+      setPagination({
+        page: pagination.current - 1,
+        pageSize: pagination.pageSize,
+      });
+    }
+  }, [listLength, loading, pagination, setPagination]);
+};
+
+export const useHandleSearchChange = () => {
+  const [searchString, setSearchString] = useState('');
+  const { pagination, setPagination } = useGetPaginationWithRouter();
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setSearchString(value);
+      setPagination({ page: 1 });
+    },
+    [setPagination],
+  );
+
+  return {
+    handleInputChange,
+    searchString,
+    setSearchString,
+    pagination,
+    setPagination,
+  };
+};
+
+export const useGetPagination = (options?: { pageSize?: number }) => {
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: options?.pageSize ?? 10,
+  });
   const { t } = useTranslate('common');
 
-  const onPageChange: PaginationProps['onChange'] = useCallback(
+  const onPageChange: Pagination['onChange'] = useCallback(
     (pageNumber: number, pageSize: number) => {
       setPagination({ page: pageNumber, pageSize });
     },
     [],
   );
 
-  const currentPagination: PaginationProps = useMemo(() => {
+  const currentPagination: Pagination = useMemo(() => {
     return {
       showQuickJumper: true,
       total: 0,
@@ -126,12 +232,13 @@ export const useGetPagination = () => {
       pageSize: pagination.pageSize,
       pageSizeOptions: [1, 2, 10, 20, 50, 100],
       onChange: onPageChange,
-      showTotal: (total) => `${t('total')} ${total}`,
+      showTotal: (total: number) => `${t('total')} ${total}`,
     };
   }, [t, onPageChange, pagination]);
 
   return {
     pagination: currentPagination,
+    setPagination,
   };
 };
 
@@ -154,12 +261,47 @@ export const useFetchAppConf = () => {
   return appConf;
 };
 
-export const useSendMessageWithSse = (
-  url: string = api.completeConversation,
-) => {
+function useSetDoneRecord() {
+  const [doneRecord, setDoneRecord] = useState<Record<string, boolean>>({});
+
+  const clearDoneRecord = useCallback(() => {
+    setDoneRecord({});
+  }, []);
+
+  const setDoneRecordById = useCallback((id: string, val: boolean) => {
+    setDoneRecord((prev) => ({ ...prev, [id]: val }));
+  }, []);
+
+  const allDone = useMemo(() => {
+    return Object.values(doneRecord).every((val) => val);
+  }, [doneRecord]);
+
+  useEffect(() => {
+    if (!isEmpty(doneRecord) && allDone) {
+      clearDoneRecord();
+    }
+  }, [allDone, clearDoneRecord, doneRecord]);
+
+  return {
+    doneRecord,
+    setDoneRecord,
+    setDoneRecordById,
+    clearDoneRecord,
+    allDone,
+  };
+}
+
+export const useSendMessageWithSse = () => {
   const [answer, setAnswer] = useState<IAnswer>({} as IAnswer);
   const [done, setDone] = useState(true);
+  const { doneRecord, clearDoneRecord, setDoneRecordById, allDone } =
+    useSetDoneRecord();
   const timer = useRef<any>();
+  const sseRef = useRef<AbortController>();
+
+  const initializeSseRef = useCallback(() => {
+    sseRef.current = new AbortController();
+  }, []);
 
   const resetAnswer = useCallback(() => {
     if (timer.current) {
@@ -171,21 +313,34 @@ export const useSendMessageWithSse = (
     }, 1000);
   }, []);
 
+  const setDoneValue = useCallback(
+    (body: any, value: boolean) => {
+      if (has(body, 'chatBoxId')) {
+        setDoneRecordById(body.chatBoxId, value);
+      } else {
+        setDone(value);
+      }
+    },
+    [setDoneRecordById],
+  );
+
   const send = useCallback(
     async (
+      url: string,
       body: any,
       controller?: AbortController,
     ): Promise<{ response: Response; data: ResponseType } | undefined> => {
+      initializeSseRef();
       try {
-        setDone(false);
+        setDoneValue(body, false);
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             [Authorization]: getAuthorization(),
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
-          signal: controller?.signal,
+          body: JSON.stringify(omit(body, 'chatBoxId')),
+          signal: controller?.signal || sseRef.current?.signal,
         });
 
         const res = response.clone().json();
@@ -195,48 +350,92 @@ export const useSendMessageWithSse = (
           .pipeThrough(new EventSourceParserStream())
           .getReader();
 
+        // oxlint-disable-next-line no-constant-condition
         while (true) {
-          const x = await reader?.read();
-          if (x) {
-            const { done, value } = x;
-            if (done) {
-              console.info('done');
-              resetAnswer();
-              break;
-            }
-            try {
-              const val = JSON.parse(value?.data || '');
-              const d = val?.data;
-              if (typeof d !== 'boolean') {
-                console.info('data:', d);
-                setAnswer({
-                  ...d,
-                  conversationId: body?.conversation_id,
-                });
+          try {
+            const x = await reader?.read();
+            if (x) {
+              const { done, value } = x;
+              if (done) {
+                resetAnswer();
+                break;
               }
-            } catch (e) {
-              console.warn(e);
+              try {
+                const val = JSON.parse(value?.data || '');
+                const d = val?.data;
+                if (typeof d !== 'boolean') {
+                  setAnswer((prev) => {
+                    const prevAnswer = prev.answer || '';
+                    // Skip final-chunk answer only when prior stream chunks exist (avoids duplicate).
+                    // Empty-response and other single-shot answers arrive with final=true only.
+                    // const currentAnswer = d.final ? '' : d.answer || '';
+                    const currentAnswer =
+                      d.final && prevAnswer ? '' : d.answer || '';
+
+                    let newAnswer: string;
+                    if (prevAnswer && currentAnswer.startsWith(prevAnswer)) {
+                      newAnswer = currentAnswer;
+                    } else {
+                      newAnswer = prevAnswer + currentAnswer;
+                    }
+
+                    if (d.start_to_think === true) {
+                      newAnswer = newAnswer + '<think>';
+                    }
+
+                    if (d.end_to_think === true) {
+                      newAnswer = newAnswer + '</think>';
+                    }
+
+                    return {
+                      ...d,
+                      answer: newAnswer,
+                      conversationId: body?.session_id ?? body?.conversation_id,
+                      chatBoxId: body.chatBoxId,
+                    };
+                  });
+                }
+              } catch {
+                // Swallow parse errors silently
+              }
+            }
+          } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+              break;
             }
           }
         }
-        console.info('done?');
-        setDone(true);
+        setDoneValue(body, true);
         resetAnswer();
         return { data: await res, response };
-      } catch (e) {
-        setDone(true);
-        resetAnswer();
+      } catch {
+        setDoneValue(body, true);
 
-        console.warn(e);
+        resetAnswer();
+        // Swallow fetch errors silently
       }
     },
-    [url, resetAnswer],
+    [initializeSseRef, setDoneValue, resetAnswer],
   );
 
-  return { send, answer, done, setDone, resetAnswer };
+  const stopOutputMessage = useCallback(() => {
+    sseRef.current?.abort();
+  }, []);
+
+  return {
+    send,
+    answer,
+    done,
+    doneRecord,
+    allDone,
+    setDone,
+    resetAnswer,
+    stopOutputMessage,
+    clearDoneRecord,
+  };
 };
 
-export const useSpeechWithSse = (url: string = api.tts) => {
+export const useSpeechWithSse = (url: string = api.chatsTts) => {
   const read = useCallback(
     async (body: any) => {
       const response = await fetch(url, {
@@ -252,8 +451,8 @@ export const useSpeechWithSse = (url: string = api.tts) => {
         if (res?.code !== 0) {
           message.error(res?.message);
         }
-      } catch (error) {
-        console.warn('🚀 ~ error:', error);
+      } catch {
+        // Swallow errors silently
       }
       return response;
     },
@@ -265,20 +464,127 @@ export const useSpeechWithSse = (url: string = api.tts) => {
 
 //#region chat hooks
 
-export const useScrollToBottom = (messages?: unknown) => {
-  const ref = useRef<HTMLDivElement>(null);
+// Firefox reports a fractional `scrollTop`, while `scrollHeight` / `clientHeight`
+// are rounded. `scrollToBottom` therefore lands a sub-pixel *below* the position
+// a native clamp had produced, which reads as a decreasing `scrollTop`. Require a
+// real gesture's worth of movement so that jitter is not mistaken for one.
+const UserScrollUpThreshold = 2;
 
-  const scrollToBottom = useCallback(() => {
-    if (messages) {
-      ref.current?.scrollIntoView({ behavior: 'instant' });
-    }
-  }, [messages]); // If the message changes, scroll to the bottom
+export const useScrollToBottom = (
+  messages?: unknown,
+  containerRef?: React.RefObject<HTMLDivElement>,
+) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const isAtBottomRef = useRef(true);
+  // `null` means "no baseline yet", so the very first measurement has to fall
+  // back to the distance check instead of guessing a scroll direction.
+  const lastScrollTopRef = useRef<number | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [scrollToBottom]);
+    isAtBottomRef.current = isAtBottom;
+  }, [isAtBottom]);
 
-  return ref;
+  // We pin the transcript to the bottom ourselves, so browser scroll anchoring is
+  // pure interference: when a streamed answer re-lays out (markdown turning a
+  // paragraph into a code block, a line re-wrapping), Firefox shifts `scrollTop`
+  // to hold its anchor node still. That shift is indistinguishable from a user
+  // scrolling up in the handler below, so it latched auto-follow off mid-answer.
+  // Chrome suppresses the adjustment while pinned to the bottom, which is why
+  // only Firefox drifted away from the bottom.
+  useEffect(() => {
+    if (!containerRef?.current) return;
+    containerRef.current.style.overflowAnchor = 'none';
+  }, [containerRef]);
+
+  const checkIfNearBottom = useCallback(() => {
+    if (!containerRef?.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    // Content shorter than the viewport has nothing to scroll, so it is
+    // trivially "at the bottom". Returning false here would latch auto-follow
+    // off when a stream starts from a short transcript: growing content does
+    // not fire a `scroll` event, so no later check would ever re-arm the flag
+    // and the view would never track the incoming message.
+    if (scrollHeight <= clientHeight) return true;
+    return Math.abs(scrollTop + clientHeight - scrollHeight) < 60;
+  }, [containerRef]);
+
+  useEffect(() => {
+    if (!containerRef?.current) return;
+    const container = containerRef.current;
+
+    const handleScroll = () => {
+      const previousScrollTop = lastScrollTopRef.current;
+      const { scrollTop } = container;
+      lastScrollTopRef.current = scrollTop;
+
+      const nearBottom = checkIfNearBottom();
+      let atBottom: boolean;
+      if (nearBottom) {
+        atBottom = true;
+      } else if (
+        previousScrollTop === null ||
+        scrollTop < previousScrollTop - UserScrollUpThreshold
+      ) {
+        // With scroll anchoring off, only a user gesture (wheel, drag, keys,
+        // touch) can shrink `scrollTop` by a meaningful amount, so this is the
+        // one reliable signal that they want to leave the bottom.
+        atBottom = false;
+      } else {
+        // We are far from the bottom yet `scrollTop` did not move: the gap comes
+        // from content that grew after `scrollToBottom` ran but before this
+        // event was dispatched. Disarming here would strand auto-follow forever,
+        // because growing content never fires another `scroll` event to re-arm
+        // it. Keep whatever the user last asked for.
+        atBottom = isAtBottomRef.current;
+      }
+
+      // Write the ref here rather than relying on the effect that mirrors
+      // `isAtBottom`: that effect only runs after the next render, and while the
+      // main thread is busy rendering a streaming answer an already scheduled
+      // auto-scroll would still see the stale `true`.
+      isAtBottomRef.current = atBottom;
+      setIsAtBottom(atBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [containerRef, checkIfNearBottom]);
+
+  // Imperative scroll function
+  const scrollToBottom = useCallback(() => {
+    if (containerRef?.current) {
+      const container = containerRef.current;
+      // Overshoot and let the browser clamp. `scrollHeight - clientHeight` is a
+      // difference of two rounded values, so in Firefox — where the real maximum
+      // is fractional — it can land just short of the bottom.
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'auto',
+      });
+    }
+  }, [containerRef]);
+
+  // Streaming replaces `messages` many times a second. The previous
+  // rAF + setTimeout(100) chain always had several scrolls queued, and they read
+  // `isAtBottomRef` long after the user had scrolled up — yanking the view back
+  // down. One cancellable frame per change, gated on the latest position, keeps
+  // auto-follow without fighting the user.
+  useEffect(() => {
+    if (!messages) return;
+    if (!containerRef?.current) return;
+    if (!isAtBottomRef.current) return;
+
+    const frame = requestAnimationFrame(() => {
+      if (isAtBottomRef.current) {
+        scrollToBottom();
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [messages, containerRef, scrollToBottom]);
+
+  return { scrollRef: ref, isAtBottom, scrollToBottom };
 };
 
 export const useHandleMessageInputChange = () => {
@@ -300,10 +606,15 @@ export const useHandleMessageInputChange = () => {
 export const useSelectDerivedMessages = () => {
   const [derivedMessages, setDerivedMessages] = useState<IMessage[]>([]);
 
-  const ref = useScrollToBottom(derivedMessages);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollRef, scrollToBottom } = useScrollToBottom(
+    derivedMessages,
+    messageContainerRef,
+  );
 
   const addNewestQuestion = useCallback(
-    (message: Message, answer: string = '') => {
+    (message: IMessage, answer: string = '') => {
       setDerivedMessages((pre) => {
         return [
           ...pre,
@@ -316,6 +627,7 @@ export const useSelectDerivedMessages = () => {
           {
             role: MessageType.Assistant,
             content: answer,
+            conversationId: message.conversationId,
             id: buildMessageUuid({ ...message, role: MessageType.Assistant }),
           },
         ];
@@ -323,6 +635,20 @@ export const useSelectDerivedMessages = () => {
     },
     [],
   );
+
+  const addNewestOneQuestion = useCallback((message: Message) => {
+    setDerivedMessages((pre) => {
+      return [
+        ...pre,
+        {
+          ...message,
+          id: buildMessageUuid(message), // The message id is generated on the front end,
+          // and the message id returned by the back end is the same as the question id,
+          //  so that the pair of messages can be deleted together when deleting the message
+        },
+      ];
+    });
+  }, []);
 
   // Add the streaming message to the last item in the message list
   const addNewestAnswer = useCallback((answer: IAnswer) => {
@@ -340,6 +666,62 @@ export const useSelectDerivedMessages = () => {
           prompt: answer.prompt,
           audio_binary: answer.audio_binary,
           ...omit(answer, 'reference'),
+        },
+      ];
+    });
+  }, []);
+
+  // Add the streaming message to the last item in the message list
+  const addNewestOneAnswer = useCallback((answer: IAnswer) => {
+    setDerivedMessages((pre) => {
+      const idx = pre.findIndex((x) => x.id === answer.id);
+
+      if (idx !== -1) {
+        return pre.map((x) => {
+          if (x.id === answer.id) {
+            return { ...x, ...answer, content: answer.answer };
+          }
+          return x;
+        });
+      }
+
+      return [
+        ...(pre ?? []),
+        {
+          role: MessageType.Assistant,
+          content: answer.answer,
+          reference: answer.reference,
+          id: buildMessageUuid({
+            id: answer.id,
+            role: MessageType.Assistant,
+          }),
+          prompt: answer.prompt,
+          audio_binary: answer.audio_binary,
+          ...omit(answer, 'reference'),
+        },
+      ];
+    });
+  }, []);
+
+  const addPrologue = useCallback((prologue: string) => {
+    setDerivedMessages((pre) => {
+      if (pre.length > 0) {
+        return [
+          {
+            ...pre[0],
+            content: prologue,
+          },
+          ...pre.slice(1),
+        ];
+      }
+
+      return [
+        {
+          role: MessageType.Assistant,
+          content: prologue,
+          id: buildMessageUuid({
+            role: MessageType.Assistant,
+          }),
         },
       ];
     });
@@ -388,15 +770,35 @@ export const useSelectDerivedMessages = () => {
     [setDerivedMessages],
   );
 
+  const removeAllMessages = useCallback(() => {
+    setDerivedMessages([]);
+  }, [setDerivedMessages]);
+
+  const removeAllMessagesExceptFirst = useCallback(() => {
+    setDerivedMessages((list) => {
+      if (list.length <= 1) {
+        return list;
+      }
+      return list.slice(0, 1);
+    });
+  }, [setDerivedMessages]);
+
   return {
-    ref,
+    scrollRef,
+    messageContainerRef,
     derivedMessages,
     setDerivedMessages,
     addNewestQuestion,
     addNewestAnswer,
     removeLatestMessage,
     removeMessageById,
+    addNewestOneQuestion,
+    addNewestOneAnswer,
     removeMessagesAfterCurrentMessage,
+    removeAllMessages,
+    scrollToBottom,
+    removeAllMessagesExceptFirst,
+    addPrologue,
   };
 };
 
@@ -464,12 +866,14 @@ export const useRegenerateMessage = ({
       if (message.id) {
         removeMessagesAfterCurrentMessage(message.id);
         const index = messages.findIndex((x) => x.id === message.id);
-        let nextMessages;
-        if (index !== -1) {
-          nextMessages = messages.slice(0, index);
-        }
+        // Always pass the truncated history explicitly, even when it is
+        // empty (regenerating the first question), so the backend can
+        // overwrite the session with it via pass_all_history_messages.
+        const nextMessages = index !== -1 ? messages.slice(0, index) : [];
         sendMessage({
-          message: { ...message, id: uuid() },
+          // Keep the original id so the question/answer pair id stays
+          // consistent between local state and the persisted session.
+          message: { ...message },
           messages: nextMessages,
         });
       }
@@ -505,12 +909,6 @@ export const useSelectItem = (defaultId?: string) => {
   }, [defaultId]);
 
   return { selectedId, handleItemClick };
-};
-
-export const useFetchModelId = () => {
-  const { data: tenantInfo } = useFetchTenantInfo(true);
-
-  return tenantInfo?.llm_id ?? '';
 };
 
 const ChunkTokenNumMap = {
